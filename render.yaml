@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: sundol
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_OPENWEATHER_API_KEY
+        sync: false
