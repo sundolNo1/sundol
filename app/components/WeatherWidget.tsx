@@ -24,36 +24,20 @@ const WEATHER_ICONS: Record<string, React.ReactNode> = {
   "50": <Wind className="w-10 h-10 text-slate-400" />,
 };
 
-export default function WeatherWidget({ apiKey }: { apiKey: string }) {
+export default function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!apiKey || apiKey === "YOUR_API_KEY") {
-      setError("API 키를 설정해주세요");
-      setLoading(false);
-      return;
-    }
-
     const fetchWeather = async (lat: number, lon: number) => {
-      const res = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=kr`
-      );
-      if (!res.ok) throw new Error("날씨 데이터 로드 실패");
+      const res = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
+      if (!res.ok) throw new Error();
       const data = await res.json();
-      setWeather({
-        temp: Math.round(data.main.temp),
-        feels_like: Math.round(data.main.feels_like),
-        description: data.weather[0].description,
-        humidity: data.main.humidity,
-        wind_speed: data.wind.speed,
-        city: data.name,
-        icon: data.weather[0].icon.slice(0, 2),
-      });
+      if (data.error) throw new Error(data.error);
+      setWeather(data);
     };
 
-    // 위치 권한 있으면 실제 위치, 없으면 서울 기본값
     const tryGeo = () =>
       new Promise<{ lat: number; lon: number }>((resolve, reject) => {
         if (!navigator.geolocation) { reject(); return; }
@@ -66,10 +50,10 @@ export default function WeatherWidget({ apiKey }: { apiKey: string }) {
 
     tryGeo()
       .then(({ lat, lon }) => fetchWeather(lat, lon))
-      .catch(() => fetchWeather(37.5665, 126.9780)) // 서울 fallback
+      .catch(() => fetchWeather(37.5665, 126.9780))
       .catch(() => setError("날씨 정보를 불러올 수 없습니다"))
       .finally(() => setLoading(false));
-  }, [apiKey]);
+  }, []);
 
   return (
     <div className="bg-slate-800/60 backdrop-blur rounded-2xl p-6 border border-slate-700/50">

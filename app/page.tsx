@@ -5,8 +5,6 @@ import BookmarksWidget from "./components/BookmarksWidget";
 import NewsWidget from "./components/NewsWidget";
 import SearchBar from "./components/SearchBar";
 
-const OPENWEATHER_API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY ?? "YOUR_API_KEY";
-
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8">
@@ -31,7 +29,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ClockWidget />
-          <WeatherWidget apiKey={OPENWEATHER_API_KEY} />
+          <WeatherWidget />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
