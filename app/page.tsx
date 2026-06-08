@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import ClockWidget from "./components/ClockWidget";
 import WeatherWidget from "./components/WeatherWidget";
 import BookmarksWidget from "./components/BookmarksWidget";
@@ -18,9 +19,18 @@ export default function Home() {
       <div className="relative max-w-6xl mx-auto space-y-6">
         {/* 헤더 */}
         <div className="text-center pt-8 pb-2">
-          <h1 className="text-4xl font-bold tracking-[0.2em] bg-gradient-to-r from-amber-300 via-amber-100 to-white bg-clip-text text-transparent mb-2">
-            SUNDOL
-          </h1>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <Image
+              src="/character.png"
+              alt="sundol character"
+              width={56}
+              height={56}
+              className="object-contain drop-shadow-lg"
+            />
+            <h1 className="text-4xl font-bold tracking-[0.2em] bg-gradient-to-r from-amber-300 via-amber-100 to-white bg-clip-text text-transparent">
+              SUNDOL
+            </h1>
+          </div>
           <p className="text-white/25 text-xs tracking-widest uppercase">좋은 하루 보내세요</p>
         </div>
 
