@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { Cloud, Sun, CloudRain, CloudSnow, Wind, Droplets, Thermometer, MapPin, Navigation } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Cloud, Sun, CloudRain, CloudSnow, Wind, Droplets, Thermometer, MapPin, Navigation, ChevronDown, ChevronUp } from "lucide-react";
 
 interface WeatherData {
   temp: number;
@@ -55,7 +55,6 @@ export default function WeatherWidget() {
     if (typeof window === "undefined") return "현재 위치";
     return localStorage.getItem("weatherCity") ?? "현재 위치";
   });
-  const pickerRef = useRef<HTMLDivElement>(null);
 
   const fetchWeather = async (lat: number, lon: number) => {
     setLoading(true);
@@ -75,10 +74,7 @@ export default function WeatherWidget() {
 
   const loadByCity = (city: City) => {
     if (city.name === "현재 위치") {
-      if (!navigator.geolocation) {
-        fetchWeather(37.5665, 126.9780);
-        return;
-      }
+      if (!navigator.geolocation) { fetchWeather(37.5665, 126.9780); return; }
       navigator.geolocation.getCurrentPosition(
         (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
         () => fetchWeather(37.5665, 126.9780),
@@ -95,16 +91,6 @@ export default function WeatherWidget() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
-        setShowPicker(false);
-      }
-    };
-    if (showPicker) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showPicker]);
-
   const handleSelectCity = (city: City) => {
     setSelectedCity(city.name);
     localStorage.setItem("weatherCity", city.name);
@@ -116,40 +102,37 @@ export default function WeatherWidget() {
     <div className="bg-slate-800/60 backdrop-blur rounded-2xl p-6 border border-slate-700/50">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-slate-400 text-xs font-semibold uppercase tracking-widest">날씨</h2>
-        <div className="relative" ref={pickerRef}>
-          <button
-            onClick={() => setShowPicker((v) => !v)}
-            className="flex items-center gap-1 text-slate-500 hover:text-blue-400 transition-colors text-xs"
-            title="지역 변경"
-          >
-            {selectedCity === "현재 위치" ? (
-              <Navigation className="w-3.5 h-3.5" />
-            ) : (
-              <MapPin className="w-3.5 h-3.5" />
-            )}
-            <span>{selectedCity}</span>
-          </button>
-
-          {showPicker && (
-            <div className="absolute right-0 top-6 z-50 bg-slate-800 border border-slate-700 rounded-xl shadow-xl w-32 py-1 overflow-hidden">
-              {CITIES.map((city) => (
-                <button
-                  key={city.name}
-                  onClick={() => handleSelectCity(city)}
-                  className={`w-full text-left px-3 py-1.5 text-sm transition-colors flex items-center gap-2
-                    ${selectedCity === city.name
-                      ? "text-blue-400 bg-blue-500/10"
-                      : "text-slate-300 hover:bg-slate-700"
-                    }`}
-                >
-                  {city.name === "현재 위치" && <Navigation className="w-3 h-3 shrink-0" />}
-                  {city.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <button
+          onClick={() => setShowPicker((v) => !v)}
+          className="flex items-center gap-1 text-slate-500 hover:text-blue-400 transition-colors text-xs"
+        >
+          {selectedCity === "현재 위치"
+            ? <Navigation className="w-3.5 h-3.5" />
+            : <MapPin className="w-3.5 h-3.5" />}
+          <span>{selectedCity}</span>
+          {showPicker ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        </button>
       </div>
+
+      {showPicker && (
+        <div className="mb-4 overflow-y-auto max-h-40 rounded-xl bg-slate-700/40 border border-slate-600/50 divide-y divide-slate-700/50">
+          {CITIES.map((city) => (
+            <button
+              key={city.name}
+              onClick={() => handleSelectCity(city)}
+              className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2
+                ${selectedCity === city.name
+                  ? "text-blue-400 bg-blue-500/10"
+                  : "text-slate-300 hover:bg-slate-600/50"}`}
+            >
+              {city.name === "현재 위치"
+                ? <Navigation className="w-3 h-3 shrink-0" />
+                : <MapPin className="w-3 h-3 shrink-0 text-slate-500" />}
+              {city.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {loading && (
         <div className="flex items-center justify-center h-20 text-slate-500">로딩 중...</div>

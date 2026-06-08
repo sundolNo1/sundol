@@ -27,7 +27,7 @@ export default function Home() {
           <div className="ml-auto text-slate-600 group-hover:text-yellow-500 transition-colors text-xl">→</div>
         </Link>
 
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ClockWidget />
           <WeatherWidget />
         </div>
