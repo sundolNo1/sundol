@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2, ExternalLink } from "lucide-react";
 
 interface Bookmark {
@@ -32,9 +32,21 @@ function getFavicon(url: string) {
 }
 
 export default function BookmarksWidget() {
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>(DEFAULT_BOOKMARKS);
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => {
+    if (typeof window === "undefined") return DEFAULT_BOOKMARKS;
+    try {
+      const saved = localStorage.getItem("bookmarks");
+      return saved ? JSON.parse(saved) : DEFAULT_BOOKMARKS;
+    } catch {
+      return DEFAULT_BOOKMARKS;
+    }
+  });
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", url: "", emoji: "🌐" });
+
+  useEffect(() => {
+    localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+  }, [bookmarks]);
 
   const addBookmark = () => {
     if (!form.title || !form.url) return;
