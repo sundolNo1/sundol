@@ -47,8 +47,8 @@ export default function NewsWidget() {
     fetchNews();
   }, []);
 
-  const sources = ["전체", ...Array.from(new Set(news.map((n) => n.source)))];
-  const filtered = activeSource === "전체" ? news : news.filter((n) => n.source === activeSource);
+  const categories = ["전체", ...Array.from(new Set(news.map((n) => n.category)))];
+  const filtered = activeSource === "전체" ? news : news.filter((n) => n.category === activeSource);
 
   return (
     <div className="bg-slate-800/60 backdrop-blur rounded-2xl p-6 border border-slate-700/50">
@@ -64,7 +64,7 @@ export default function NewsWidget() {
       </div>
 
       <div className="flex gap-2 mb-4 flex-wrap">
-        {sources.map((src) => (
+        {categories.map((src) => (
           <button
             key={src}
             onClick={() => setActiveSource(src)}

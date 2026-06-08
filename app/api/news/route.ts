@@ -16,6 +16,16 @@ const RSS_FEEDS = [
     url: "https://feeds.bbci.co.uk/korean/rss.xml",
     category: "국제",
   },
+  {
+    name: "연합뉴스 스포츠",
+    url: "https://www.yna.co.kr/rss/sports.xml",
+    category: "스포츠",
+  },
+  {
+    name: "스포츠조선",
+    url: "https://www.sportschosun.com/rss/sports.xml",
+    category: "스포츠",
+  },
 ];
 
 interface NewsItem {
