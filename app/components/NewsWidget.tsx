@@ -51,12 +51,12 @@ export default function NewsWidget() {
   const filtered = activeSource === "전체" ? news : news.filter((n) => n.category === activeSource);
 
   return (
-    <div className="bg-slate-800/60 backdrop-blur rounded-2xl p-6 border border-slate-700/50">
+    <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-6 border border-white/[0.07]">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-slate-400 text-xs font-semibold uppercase tracking-widest">뉴스</h2>
+        <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">뉴스</h2>
         <button
           onClick={fetchNews}
-          className="text-slate-500 hover:text-blue-400 transition-colors"
+          className="text-white/25 hover:text-amber-400/80 transition-colors"
           title="새로고침"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
@@ -70,8 +70,8 @@ export default function NewsWidget() {
             onClick={() => setActiveSource(src)}
             className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
               activeSource === src
-                ? "bg-blue-600 text-white"
-                : "bg-slate-700 text-slate-400 hover:text-white"
+                ? "bg-amber-400/15 text-amber-300 border border-amber-400/30"
+                : "bg-white/[0.05] text-white/30 hover:text-white/60 border border-transparent"
             }`}
           >
             {src}
@@ -83,13 +83,13 @@ export default function NewsWidget() {
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="h-4 bg-slate-700 rounded w-3/4 mb-1" />
-              <div className="h-3 bg-slate-700/50 rounded w-1/4" />
+              <div className="h-4 bg-white/[0.05] rounded w-3/4 mb-1" />
+              <div className="h-3 bg-white/[0.03] rounded w-1/4" />
             </div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-slate-500 text-sm text-center py-6">뉴스를 불러올 수 없습니다</div>
+        <div className="text-white/20 text-sm text-center py-6">뉴스를 불러올 수 없습니다</div>
       ) : (
         <div className="space-y-1 max-h-80 overflow-y-auto pr-1">
           {filtered.map((item, i) => (
@@ -98,20 +98,20 @@ export default function NewsWidget() {
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-start gap-2 p-2 rounded-lg hover:bg-slate-700/50 transition-colors group"
+              className="flex items-start gap-2 p-2 rounded-lg hover:bg-white/[0.05] transition-colors group"
             >
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-slate-200 group-hover:text-white line-clamp-2 leading-snug">
+                <p className="text-sm text-white/60 group-hover:text-white/90 line-clamp-2 leading-snug transition-colors">
                   {item.title}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-blue-400">{item.source}</span>
+                  <span className="text-xs text-amber-400/50">{item.source}</span>
                   {item.pubDate && (
-                    <span className="text-xs text-slate-500">{timeAgo(item.pubDate)}</span>
+                    <span className="text-xs text-white/20">{timeAgo(item.pubDate)}</span>
                   )}
                 </div>
               </div>
-              <ExternalLink className="w-3 h-3 text-slate-600 group-hover:text-slate-400 flex-shrink-0 mt-1" />
+              <ExternalLink className="w-3 h-3 text-white/15 group-hover:text-white/40 flex-shrink-0 mt-1 transition-colors" />
             </a>
           ))}
         </div>

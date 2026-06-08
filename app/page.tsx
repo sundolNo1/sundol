@@ -7,24 +7,36 @@ import SearchBar from "./components/SearchBar";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="text-center pt-4 pb-2">
-          <h1 className="text-2xl font-bold text-slate-200 mb-1">sundol</h1>
-          <p className="text-slate-500 text-sm">좋은 하루 보내세요 👋</p>
+    <main className="min-h-screen bg-[#06090f] p-4 md:p-8 relative overflow-x-hidden">
+      {/* 배경 장식 오브 */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-[700px] h-[700px] bg-amber-500/[0.06] rounded-full blur-[140px]" />
+        <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-indigo-600/[0.07] rounded-full blur-[130px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-violet-500/[0.04] rounded-full blur-[110px]" />
+      </div>
+
+      <div className="relative max-w-6xl mx-auto space-y-6">
+        {/* 헤더 */}
+        <div className="text-center pt-8 pb-2">
+          <h1 className="text-4xl font-bold tracking-[0.2em] bg-gradient-to-r from-amber-300 via-amber-100 to-white bg-clip-text text-transparent mb-2">
+            SUNDOL
+          </h1>
+          <p className="text-white/25 text-xs tracking-widest uppercase">좋은 하루 보내세요</p>
         </div>
 
         <SearchBar />
 
         {/* 미니게임 */}
-        <Link href="/games"
-          className="bg-slate-800/60 backdrop-blur rounded-2xl p-6 border border-slate-700/50 hover:border-yellow-500/50 transition-colors group flex items-center gap-5">
-          <div className="text-4xl">🎮</div>
+        <Link
+          href="/games"
+          className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-5 border border-white/[0.07] hover:border-amber-400/25 hover:bg-white/[0.05] transition-all group flex items-center gap-5"
+        >
+          <div className="text-3xl opacity-80">🎮</div>
           <div>
-            <h2 className="text-white font-bold text-lg group-hover:text-yellow-400 transition-colors">미니게임</h2>
-            <p className="text-slate-400 text-sm mt-0.5">Texas Hold'em 외 1개 · 계속 업데이트 중</p>
+            <h2 className="text-[#f0ead6] font-semibold tracking-wide group-hover:text-amber-200 transition-colors">미니게임</h2>
+            <p className="text-white/30 text-xs mt-0.5 tracking-wide">Texas Hold'em 외 1개 · 계속 업데이트 중</p>
           </div>
-          <div className="ml-auto text-slate-600 group-hover:text-yellow-500 transition-colors text-xl">→</div>
+          <div className="ml-auto text-white/20 group-hover:text-amber-400/60 transition-colors text-lg">→</div>
         </Link>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

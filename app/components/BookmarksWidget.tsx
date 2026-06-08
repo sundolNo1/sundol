@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 interface Bookmark {
   id: string;
@@ -64,12 +64,12 @@ export default function BookmarksWidget() {
   };
 
   return (
-    <div className="bg-slate-800/60 backdrop-blur rounded-2xl p-6 border border-slate-700/50">
+    <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-6 border border-white/[0.07]">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-slate-400 text-xs font-semibold uppercase tracking-widest">즐겨찾기</h2>
+        <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">즐겨찾기</h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="text-slate-500 hover:text-blue-400 transition-colors"
+          className="text-white/25 hover:text-amber-400/80 transition-colors"
           title="추가"
         >
           <Plus className="w-4 h-4" />
@@ -77,27 +77,31 @@ export default function BookmarksWidget() {
       </div>
 
       {showForm && (
-        <div className="mb-4 p-3 bg-slate-700/50 rounded-xl space-y-2">
+        <div className="mb-4 p-3 bg-white/[0.04] rounded-xl space-y-2 border border-white/[0.06]">
           <input
             type="text"
             placeholder="사이트 이름"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="w-full bg-slate-600/50 text-white text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full bg-white/[0.05] text-[#f0ead6] text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-amber-400/40 placeholder-white/20"
           />
           <input
             type="text"
             placeholder="URL (예: google.com)"
             value={form.url}
             onChange={(e) => setForm({ ...form, url: e.target.value })}
-            className="w-full bg-slate-600/50 text-white text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full bg-white/[0.05] text-[#f0ead6] text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-amber-400/40 placeholder-white/20"
           />
           <div className="flex gap-1 flex-wrap">
             {EMOJIS.map((e) => (
               <button
                 key={e}
                 onClick={() => setForm({ ...form, emoji: e })}
-                className={`text-lg p-1 rounded ${form.emoji === e ? "bg-blue-500/30 ring-1 ring-blue-500" : "hover:bg-slate-600"}`}
+                className={`text-lg p-1 rounded transition-colors ${
+                  form.emoji === e
+                    ? "bg-amber-400/20 ring-1 ring-amber-400/50"
+                    : "hover:bg-white/[0.08]"
+                }`}
               >
                 {e}
               </button>
@@ -106,13 +110,13 @@ export default function BookmarksWidget() {
           <div className="flex gap-2">
             <button
               onClick={addBookmark}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg py-1.5 transition-colors"
+              className="flex-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-sm rounded-lg py-1.5 transition-colors border border-amber-400/20"
             >
               추가
             </button>
             <button
               onClick={() => setShowForm(false)}
-              className="flex-1 bg-slate-600 hover:bg-slate-500 text-white text-sm rounded-lg py-1.5 transition-colors"
+              className="flex-1 bg-white/[0.05] hover:bg-white/[0.08] text-white/50 text-sm rounded-lg py-1.5 transition-colors"
             >
               취소
             </button>
@@ -129,14 +133,14 @@ export default function BookmarksWidget() {
                 href={bm.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-slate-700/60 transition-colors cursor-pointer"
+                className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/[0.06] transition-colors cursor-pointer"
               >
                 <div className="w-8 h-8 flex items-center justify-center">
                   {favicon ? (
                     <img
                       src={favicon}
                       alt={bm.title}
-                      className="w-6 h-6 rounded"
+                      className="w-6 h-6 rounded opacity-80"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";
                         (e.target as HTMLImageElement).nextSibling!.textContent = bm.emoji;
@@ -147,11 +151,11 @@ export default function BookmarksWidget() {
                   )}
                   <span className="hidden text-xl">{bm.emoji}</span>
                 </div>
-                <span className="text-xs text-slate-300 truncate w-full text-center">{bm.title}</span>
+                <span className="text-xs text-white/40 group-hover:text-white/70 truncate w-full text-center transition-colors">{bm.title}</span>
               </a>
               <button
                 onClick={() => removeBookmark(bm.id)}
-                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition-all"
+                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-white/25 hover:text-red-400/70 transition-all"
               >
                 <Trash2 className="w-3 h-3" />
               </button>

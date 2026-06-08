@@ -36,14 +36,14 @@ const CITIES: City[] = [
 ];
 
 const WEATHER_ICONS: Record<string, React.ReactNode> = {
-  "01": <Sun className="w-10 h-10 text-yellow-400" />,
-  "02": <Cloud className="w-10 h-10 text-slate-300" />,
-  "03": <Cloud className="w-10 h-10 text-slate-400" />,
-  "04": <Cloud className="w-10 h-10 text-slate-500" />,
-  "09": <CloudRain className="w-10 h-10 text-blue-400" />,
-  "10": <CloudRain className="w-10 h-10 text-blue-400" />,
-  "13": <CloudSnow className="w-10 h-10 text-blue-200" />,
-  "50": <Wind className="w-10 h-10 text-slate-400" />,
+  "01": <Sun className="w-10 h-10 text-amber-300" />,
+  "02": <Cloud className="w-10 h-10 text-white/50" />,
+  "03": <Cloud className="w-10 h-10 text-white/40" />,
+  "04": <Cloud className="w-10 h-10 text-white/30" />,
+  "09": <CloudRain className="w-10 h-10 text-blue-300/70" />,
+  "10": <CloudRain className="w-10 h-10 text-blue-300/70" />,
+  "13": <CloudSnow className="w-10 h-10 text-blue-100/60" />,
+  "50": <Wind className="w-10 h-10 text-white/40" />,
 };
 
 export default function WeatherWidget() {
@@ -99,12 +99,12 @@ export default function WeatherWidget() {
   };
 
   return (
-    <div className="bg-slate-800/60 backdrop-blur rounded-2xl p-6 border border-slate-700/50">
+    <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-6 border border-white/[0.07]">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-slate-400 text-xs font-semibold uppercase tracking-widest">날씨</h2>
+        <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">날씨</h2>
         <button
           onClick={() => setShowPicker((v) => !v)}
-          className="flex items-center gap-1 text-slate-500 hover:text-blue-400 transition-colors text-xs"
+          className="flex items-center gap-1 text-white/30 hover:text-amber-400/80 transition-colors text-xs"
         >
           {selectedCity === "현재 위치"
             ? <Navigation className="w-3.5 h-3.5" />
@@ -115,19 +115,19 @@ export default function WeatherWidget() {
       </div>
 
       {showPicker && (
-        <div className="mb-4 overflow-y-auto max-h-40 rounded-xl bg-slate-700/40 border border-slate-600/50 divide-y divide-slate-700/50">
+        <div className="mb-4 overflow-y-auto max-h-40 rounded-xl bg-white/[0.04] border border-white/[0.08] divide-y divide-white/[0.04]">
           {CITIES.map((city) => (
             <button
               key={city.name}
               onClick={() => handleSelectCity(city)}
               className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2
                 ${selectedCity === city.name
-                  ? "text-blue-400 bg-blue-500/10"
-                  : "text-slate-300 hover:bg-slate-600/50"}`}
+                  ? "text-amber-300 bg-amber-400/10"
+                  : "text-white/50 hover:bg-white/[0.05] hover:text-white/80"}`}
             >
               {city.name === "현재 위치"
                 ? <Navigation className="w-3 h-3 shrink-0" />
-                : <MapPin className="w-3 h-3 shrink-0 text-slate-500" />}
+                : <MapPin className="w-3 h-3 shrink-0 text-white/20" />}
               {city.name}
             </button>
           ))}
@@ -135,32 +135,32 @@ export default function WeatherWidget() {
       )}
 
       {loading && (
-        <div className="flex items-center justify-center h-20 text-slate-500">로딩 중...</div>
+        <div className="flex items-center justify-center h-20 text-white/20 text-sm">로딩 중...</div>
       )}
       {error && (
-        <div className="flex items-center justify-center h-20 text-slate-500 text-sm text-center">{error}</div>
+        <div className="flex items-center justify-center h-20 text-white/20 text-sm text-center">{error}</div>
       )}
       {!loading && !error && weather && (
         <div>
           <div className="flex items-center gap-4">
-            <div>{WEATHER_ICONS[weather.icon] ?? <Cloud className="w-10 h-10 text-slate-400" />}</div>
+            <div className="opacity-80">{WEATHER_ICONS[weather.icon] ?? <Cloud className="w-10 h-10 text-white/40" />}</div>
             <div>
-              <div className="text-4xl font-bold text-white">{weather.temp}°C</div>
-              <div className="text-slate-400 text-sm capitalize">{weather.description}</div>
-              <div className="text-slate-500 text-xs">{weather.city}</div>
+              <div className="text-5xl font-thin text-[#f0ead6] tracking-wide">{weather.temp}°</div>
+              <div className="text-white/40 text-sm capitalize mt-0.5">{weather.description}</div>
+              <div className="text-white/20 text-xs">{weather.city}</div>
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-3 gap-2 text-xs text-slate-400">
-            <div className="flex items-center gap-1">
-              <Thermometer className="w-3 h-3" />
+          <div className="mt-5 grid grid-cols-3 gap-2 text-xs text-white/30 border-t border-white/[0.05] pt-4">
+            <div className="flex items-center gap-1.5">
+              <Thermometer className="w-3 h-3 text-amber-400/40" />
               <span>체감 {weather.feels_like}°</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Droplets className="w-3 h-3" />
+            <div className="flex items-center gap-1.5">
+              <Droplets className="w-3 h-3 text-blue-300/40" />
               <span>습도 {weather.humidity}%</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Wind className="w-3 h-3" />
+            <div className="flex items-center gap-1.5">
+              <Wind className="w-3 h-3 text-white/30" />
               <span>바람 {weather.wind_speed}m/s</span>
             </div>
           </div>

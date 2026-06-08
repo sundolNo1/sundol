@@ -23,14 +23,14 @@ export default function ClockWidget() {
   });
 
   return (
-    <div className="bg-slate-800/60 backdrop-blur rounded-2xl p-6 text-center border border-slate-700/50">
-      <div className="text-5xl font-mono font-bold tracking-widest text-white">
-        {hours}
-        <span className="animate-pulse text-blue-400">:</span>
-        {minutes}
-        <span className="text-slate-400 text-3xl">:{seconds}</span>
+    <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-8 text-center border border-white/[0.07]">
+      <div className="flex items-baseline justify-center">
+        <span className="text-7xl font-thin tracking-[0.12em] text-[#f0ead6]">{hours}</span>
+        <span className="text-5xl font-thin text-amber-400/50 animate-pulse mx-2 mb-1">:</span>
+        <span className="text-7xl font-thin tracking-[0.12em] text-[#f0ead6]">{minutes}</span>
+        <span className="text-2xl font-thin text-white/20 ml-3 mb-1">:{seconds}</span>
       </div>
-      <div className="mt-2 text-slate-400 text-sm">{dateStr}</div>
+      <div className="mt-4 text-white/30 text-xs tracking-widest uppercase">{dateStr}</div>
     </div>
   );
 }
