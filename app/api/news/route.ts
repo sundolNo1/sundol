@@ -77,9 +77,20 @@ export async function GET() {
     })
   );
 
-  const sorted = results.sort(
+  // 카테고리별 최신순 10개씩 균등 배분
+  const byCat: Record<string, NewsItem[]> = {};
+  for (const item of results) {
+    if (!byCat[item.category]) byCat[item.category] = [];
+    byCat[item.category].push(item);
+  }
+  const balanced = Object.values(byCat).flatMap((items) =>
+    items
+      .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
+      .slice(0, 10)
+  );
+  const sorted = balanced.sort(
     (a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
   );
 
-  return NextResponse.json(sorted.slice(0, 20));
+  return NextResponse.json(sorted);
 }
