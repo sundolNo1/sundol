@@ -22,8 +22,8 @@ const RSS_FEEDS = [
     category: "스포츠",
   },
   {
-    name: "스포츠조선",
-    url: "https://www.sportschosun.com/rss/sports.xml",
+    name: "매일경제 스포츠",
+    url: "https://www.mk.co.kr/rss/sport/",
     category: "스포츠",
   },
 ];
