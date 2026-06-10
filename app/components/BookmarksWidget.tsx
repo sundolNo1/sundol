@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, GripVertical } from "lucide-react";
 
 interface Bookmark {
   id: string;
@@ -54,6 +54,8 @@ export default function BookmarksWidget() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", url: "", emoji: "🌐" });
   const [mounted, setMounted] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -74,6 +76,35 @@ export default function BookmarksWidget() {
 
   const removeBookmark = (id: string) => {
     setBookmarks((prev) => prev.filter((b) => b.id !== id));
+  };
+
+  const handleDragStart = (index: number) => {
+    setDragIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (dragOverIndex !== index) setDragOverIndex(index);
+  };
+
+  const handleDrop = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (dragIndex === null || dragIndex === index) {
+      setDragIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    const next = [...bookmarks];
+    const [item] = next.splice(dragIndex, 1);
+    next.splice(index, 0, item);
+    setBookmarks(next);
+    setDragIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDragIndex(null);
+    setDragOverIndex(null);
   };
 
   return (
@@ -138,14 +169,27 @@ export default function BookmarksWidget() {
       )}
 
       <div className="grid grid-cols-4 sm:grid-cols-3 md:grid-cols-4 gap-1 sm:gap-2">
-        {bookmarks.map((bm) => {
+        {bookmarks.map((bm, index) => {
           const favicon = mounted ? getFavicon(bm.url) : null;
+          const isDragging = dragIndex === index;
+          const isOver = dragOverIndex === index && dragIndex !== index;
           return (
-            <div key={bm.id} className="group relative">
+            <div
+              key={bm.id}
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
+              className={`group relative transition-all ${
+                isDragging ? "opacity-30 scale-95" : "opacity-100 scale-100"
+              } ${isOver ? "ring-1 ring-amber-400/50 rounded-xl bg-amber-400/[0.04]" : ""}`}
+            >
               <a
                 href={bm.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                draggable="false"
                 className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-xl hover:bg-white/[0.06] active:bg-white/[0.08] transition-colors cursor-pointer min-h-[64px] justify-center"
               >
                 <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center">
@@ -173,6 +217,7 @@ export default function BookmarksWidget() {
               >
                 <Trash2 className="w-3 h-3" />
               </button>
+              <GripVertical className="absolute bottom-1 right-1 w-3 h-3 text-white/15 opacity-0 group-hover:opacity-100 transition-all cursor-grab" />
             </div>
           );
         })}
