@@ -235,8 +235,11 @@ export default function NewsWidget() {
         <div className="flex items-center justify-between mb-3 sm:mb-4">
           <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">뉴스</h2>
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowSettings(true)} className="text-white/25 hover:text-amber-400/80 transition-colors" title="피드 관리">
-              <Settings2 className="w-4 h-4" />
+            <button onClick={() => setShowSettings(true)}
+              className="flex items-center gap-1 text-white/40 hover:text-amber-400/80 transition-colors text-[10px] tracking-wide"
+              title="피드 관리">
+              <Settings2 className="w-3.5 h-3.5" />
+              <span>피드</span>
             </button>
             <button onClick={fetchNews} className="text-white/25 hover:text-amber-400/80 transition-colors" title="새로고침">
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
