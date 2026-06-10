@@ -10,7 +10,7 @@ interface Bookmark {
   emoji: string;
 }
 
-const BOOKMARKS_VERSION = "5";
+const BOOKMARKS_VERSION = "6";
 
 const DEFAULT_BOOKMARKS: Bookmark[] = [
   { id: "1", title: "네이버", url: "https://naver.com", emoji: "🟢" },
@@ -19,6 +19,8 @@ const DEFAULT_BOOKMARKS: Bookmark[] = [
   { id: "4", title: "카카오", url: "https://kakao.com", emoji: "💛" },
   { id: "5", title: "네이버웹툰", url: "https://comic.naver.com", emoji: "🎨" },
   { id: "6", title: "넷플릭스", url: "https://netflix.com", emoji: "🎬" },
+  { id: "7", title: "누누티비", url: "https://nooo10.tv/all/program_list.php", emoji: "📺" },
+  { id: "8", title: "티비몬", url: "https://tvmon1.com/", emoji: "📡" },
 ];
 
 const EMOJIS = ["🌐", "📧", "🐙", "▶️", "📝", "🟢", "💛", "🔵", "🔴", "⭐", "🏠", "🎵", "📚", "💼", "🛒"];
