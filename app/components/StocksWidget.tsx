@@ -12,6 +12,15 @@ interface StockItem {
   changePct: number | null;
 }
 
+const STOCK_URLS: Record<string, string> = {
+  "^KS11": "https://finance.naver.com/sise/",
+  "^KQ11": "https://finance.naver.com/sise/sise_index.naver?code=KOSDAQ",
+  "^GSPC": "https://finance.yahoo.com/quote/%5EGSPC",
+  "^IXIC": "https://finance.yahoo.com/quote/%5EIXIC",
+  "^DJI":  "https://finance.yahoo.com/quote/%5EDJI",
+  "^N225": "https://finance.yahoo.com/quote/%5EN225",
+};
+
 function fmt(price: number, symbol: string) {
   if (symbol.endsWith(".KS") || ["^KS11", "^KQ11"].includes(symbol)) {
     return price >= 1000 ? price.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) : price.toFixed(2);
@@ -32,8 +41,10 @@ function StockRow({ item }: { item: StockItem }) {
   const color = up ? "#4ade80" : "#f87171";
   const Icon = up ? TrendingUp : TrendingDown;
 
+  const url = STOCK_URLS[item.symbol];
   return (
-    <div className="flex items-center justify-between py-2 px-1 border-b border-white/[0.04] last:border-0">
+    <a href={url} target="_blank" rel="noopener noreferrer"
+      className="flex items-center justify-between py-2 px-1 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.04] active:bg-white/[0.06] rounded-lg transition-colors cursor-pointer">
       <div className="flex items-center gap-1.5 min-w-0">
         <Icon className="w-3 h-3 flex-shrink-0" style={{ color }} />
         <span className="text-xs sm:text-sm font-medium text-white/70 truncate">{item.name}</span>
@@ -47,7 +58,7 @@ function StockRow({ item }: { item: StockItem }) {
           {up ? "+" : ""}{item.changePct?.toFixed(2)}%
         </span>
       </div>
-    </div>
+    </a>
   );
 }
 
