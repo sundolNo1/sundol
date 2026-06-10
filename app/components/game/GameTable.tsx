@@ -69,7 +69,7 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-3 sm:px-5 py-2 flex-shrink-0"
-        style={{ background: 'rgba(0,0,0,0.55)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(10px)' }}>
+        style={{ background: 'rgba(0,0,0,0.55)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
         <div className="flex items-center gap-2 min-w-0">
           <Link href="/games" className="text-gray-500 hover:text-gray-300 transition-colors mr-0.5" style={{ fontSize: 13 }}>←</Link>
           <span className="font-bold tracking-wide whitespace-nowrap text-xs sm:text-sm flex-shrink-0"
@@ -133,7 +133,7 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
       </div>
 
       {/* ── Bottom section — panels + my player + controls ── */}
-      <div className="flex-shrink-0" style={{ background: 'rgba(4,5,10,0.96)', borderTop: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(10px)' }}>
+      <div className="flex-shrink-0" style={{ background: 'rgba(4,5,10,0.96)', borderTop: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
 
         {/* Showdown panel */}
         {gameState.phase === 'showdown' && gameState.winners.length > 0 && (
@@ -165,7 +165,7 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
         {/* Waiting panel */}
         {gameState.phase === 'waiting' && (
           <div className="mx-3 mt-2 rounded-2xl p-3"
-            style={{ background: 'rgba(8,10,18,0.95)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(12px)' }}>
+            style={{ background: 'rgba(8,10,18,0.95)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
             <p className="text-gray-500 text-xs text-center mb-2 tracking-widest uppercase">
               참가자 {gameState.players.length}명{gameState.players.length < 2 && ' · 최소 2명 필요'}
             </p>

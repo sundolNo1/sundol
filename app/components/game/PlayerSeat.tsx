@@ -211,7 +211,7 @@ export default function PlayerSeat({ player, isMe, phase, actionDeadline, handSt
 
       {/* Name + chips info tag */}
       <div className="text-center px-2 py-1 rounded-lg"
-        style={{ background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.08)', minWidth: 78, backdropFilter: 'blur(8px)' }}>
+        style={{ background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.08)', minWidth: 78, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
         <div className="flex items-center justify-center gap-1">
           {player.isBot && (
             <span style={{ fontSize: 7, fontWeight: 800, color: '#a78bfa', background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(139,92,246,0.35)', borderRadius: 2, padding: '0 2px' }}>BOT</span>
