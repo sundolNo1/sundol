@@ -99,8 +99,8 @@ export default function WeatherWidget() {
   };
 
   return (
-    <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-6 border border-white/[0.07]">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/[0.07]">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">날씨</h2>
         <button
           onClick={() => setShowPicker((v) => !v)}
@@ -142,15 +142,15 @@ export default function WeatherWidget() {
       )}
       {!loading && !error && weather && (
         <div>
-          <div className="flex items-center gap-4">
-            <div className="opacity-80">{WEATHER_ICONS[weather.icon] ?? <Cloud className="w-10 h-10 text-white/40" />}</div>
-            <div>
-              <div className="text-5xl font-thin text-[#f0ead6] tracking-wide">{weather.temp}°</div>
-              <div className="text-white/40 text-sm capitalize mt-0.5">{weather.description}</div>
-              <div className="text-white/20 text-xs">{weather.city}</div>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="opacity-80 flex-shrink-0 [&>svg]:w-7 [&>svg]:h-7 sm:[&>svg]:w-10 sm:[&>svg]:h-10">{WEATHER_ICONS[weather.icon] ?? <Cloud className="w-7 h-7 sm:w-10 sm:h-10 text-white/40" />}</div>
+            <div className="min-w-0">
+              <div className="text-3xl sm:text-5xl font-thin text-[#f0ead6] tracking-wide">{weather.temp}°</div>
+              <div className="text-white/40 text-xs sm:text-sm capitalize mt-0.5 truncate">{weather.description}</div>
+              <div className="text-white/20 text-xs truncate">{weather.city}</div>
             </div>
           </div>
-          <div className="mt-5 grid grid-cols-3 gap-2 text-xs text-white/30 border-t border-white/[0.05] pt-4">
+          <div className="mt-3 sm:mt-5 grid grid-cols-3 gap-1 sm:gap-2 text-[10px] sm:text-xs text-white/30 border-t border-white/[0.05] pt-3 sm:pt-4">
             <div className="flex items-center gap-1.5">
               <Thermometer className="w-3 h-3 text-amber-400/40" />
               <span>체감 {weather.feels_like}°</span>

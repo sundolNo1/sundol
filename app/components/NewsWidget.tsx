@@ -51,8 +51,8 @@ export default function NewsWidget() {
   const filtered = activeSource === "전체" ? news : news.filter((n) => n.category === activeSource);
 
   return (
-    <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-6 border border-white/[0.07]">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/[0.07]">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">뉴스</h2>
         <button
           onClick={fetchNews}
@@ -63,7 +63,7 @@ export default function NewsWidget() {
         </button>
       </div>
 
-      <div className="flex gap-2 mb-4 flex-wrap">
+      <div className="flex gap-1.5 sm:gap-2 mb-3 sm:mb-4 flex-wrap">
         {categories.map((src) => (
           <button
             key={src}
@@ -91,17 +91,17 @@ export default function NewsWidget() {
       ) : filtered.length === 0 ? (
         <div className="text-white/20 text-sm text-center py-6">뉴스를 불러올 수 없습니다</div>
       ) : (
-        <div className="space-y-1 max-h-80 overflow-y-auto pr-1">
+        <div className="space-y-0.5 sm:space-y-1 max-h-64 sm:max-h-80 overflow-y-auto pr-1">
           {filtered.map((item, i) => (
             <a
               key={i}
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-start gap-2 p-2 rounded-lg hover:bg-white/[0.05] transition-colors group"
+              className="flex items-start gap-2 p-2 sm:p-2 rounded-lg hover:bg-white/[0.05] active:bg-white/[0.07] transition-colors group min-h-[44px]"
             >
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-white/60 group-hover:text-white/90 line-clamp-2 leading-snug transition-colors">
+                <p className="text-xs sm:text-sm text-white/60 group-hover:text-white/90 line-clamp-2 leading-snug transition-colors">
                   {item.title}
                 </p>
                 <div className="flex items-center gap-2 mt-1">

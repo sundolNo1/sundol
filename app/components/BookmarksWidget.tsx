@@ -64,8 +64,8 @@ export default function BookmarksWidget() {
   };
 
   return (
-    <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-6 border border-white/[0.07]">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/[0.07]">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">즐겨찾기</h2>
         <button
           onClick={() => setShowForm(!showForm)}
@@ -124,7 +124,7 @@ export default function BookmarksWidget() {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 sm:grid-cols-3 md:grid-cols-4 gap-1 sm:gap-2">
         {bookmarks.map((bm) => {
           const favicon = getFavicon(bm.url);
           return (
@@ -133,14 +133,14 @@ export default function BookmarksWidget() {
                 href={bm.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/[0.06] transition-colors cursor-pointer"
+                className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-xl hover:bg-white/[0.06] active:bg-white/[0.08] transition-colors cursor-pointer min-h-[64px] justify-center"
               >
-                <div className="w-8 h-8 flex items-center justify-center">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center">
                   {favicon ? (
                     <img
                       src={favicon}
                       alt={bm.title}
-                      className="w-6 h-6 rounded opacity-80"
+                      className="w-5 h-5 sm:w-6 sm:h-6 rounded opacity-80"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";
                         (e.target as HTMLImageElement).nextSibling!.textContent = bm.emoji;
