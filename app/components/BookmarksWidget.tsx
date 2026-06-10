@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, GripVertical } from "lucide-react";
+import { Plus, Trash2, GripVertical, Pencil, Check, X } from "lucide-react";
 
 interface Bookmark {
   id: string;
@@ -53,6 +53,8 @@ export default function BookmarksWidget() {
   });
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", url: "", emoji: "🌐" });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ title: "", url: "", emoji: "🌐" });
   const [mounted, setMounted] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -76,6 +78,18 @@ export default function BookmarksWidget() {
 
   const removeBookmark = (id: string) => {
     setBookmarks((prev) => prev.filter((b) => b.id !== id));
+  };
+
+  const startEdit = (bm: Bookmark) => {
+    setEditingId(bm.id);
+    setEditForm({ title: bm.title, url: bm.url, emoji: bm.emoji });
+  };
+
+  const saveEdit = () => {
+    if (!editForm.title || !editForm.url) return;
+    const url = editForm.url.startsWith("http") ? editForm.url : `https://${editForm.url}`;
+    setBookmarks((prev) => prev.map((b) => b.id === editingId ? { ...b, title: editForm.title, url, emoji: editForm.emoji } : b));
+    setEditingId(null);
   };
 
   const handleDragStart = (index: number) => {
@@ -173,11 +187,12 @@ export default function BookmarksWidget() {
           const favicon = mounted ? getFavicon(bm.url) : null;
           const isDragging = dragIndex === index;
           const isOver = dragOverIndex === index && dragIndex !== index;
+          const isEditing = editingId === bm.id;
           return (
             <div
               key={bm.id}
-              draggable
-              onDragStart={() => handleDragStart(index)}
+              draggable={!isEditing}
+              onDragStart={() => !isEditing && handleDragStart(index)}
               onDragOver={(e) => handleDragOver(e, index)}
               onDrop={(e) => handleDrop(e, index)}
               onDragEnd={handleDragEnd}
@@ -185,39 +200,63 @@ export default function BookmarksWidget() {
                 isDragging ? "opacity-30 scale-95" : "opacity-100 scale-100"
               } ${isOver ? "ring-1 ring-amber-400/50 rounded-xl bg-amber-400/[0.04]" : ""}`}
             >
-              <a
-                href={bm.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                draggable="false"
-                className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-xl hover:bg-white/[0.06] active:bg-white/[0.08] transition-colors cursor-pointer min-h-[64px] justify-center"
-              >
-                <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center">
-                  {favicon ? (
-                    <img
-                      src={favicon}
-                      alt={bm.title}
-                      className="w-5 h-5 sm:w-6 sm:h-6 rounded opacity-80"
-                      loading="lazy"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                        (e.target as HTMLImageElement).nextSibling!.textContent = bm.emoji;
-                      }}
-                    />
-                  ) : (
-                    <span className="text-xl">{bm.emoji}</span>
-                  )}
-                  <span className="hidden text-xl">{bm.emoji}</span>
+              {isEditing ? (
+                <div className="col-span-1 p-2 rounded-xl bg-white/[0.06] border border-amber-400/20 space-y-1.5">
+                  <div className="flex gap-1 flex-wrap mb-1">
+                    {EMOJIS.map((e) => (
+                      <button key={e} onClick={() => setEditForm({ ...editForm, emoji: e })}
+                        className={`text-sm p-0.5 rounded transition-colors ${editForm.emoji === e ? "bg-amber-400/20 ring-1 ring-amber-400/50" : "hover:bg-white/[0.08]"}`}>
+                        {e}
+                      </button>
+                    ))}
+                  </div>
+                  <input type="text" value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    placeholder="이름" className="w-full bg-white/[0.05] text-[#f0ead6] text-xs rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-amber-400/40 placeholder-white/20" />
+                  <input type="text" value={editForm.url} onChange={(e) => setEditForm({ ...editForm, url: e.target.value })}
+                    placeholder="URL" className="w-full bg-white/[0.05] text-[#f0ead6] text-xs rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-amber-400/40 placeholder-white/20" />
+                  <div className="flex gap-1">
+                    <button onClick={saveEdit} className="flex-1 flex items-center justify-center gap-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs rounded-lg py-1 transition-colors border border-amber-400/20">
+                      <Check className="w-3 h-3" />
+                    </button>
+                    <button onClick={() => setEditingId(null)} className="flex-1 flex items-center justify-center bg-white/[0.05] hover:bg-white/[0.08] text-white/40 text-xs rounded-lg py-1 transition-colors">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
-                <span className="text-xs text-white/40 group-hover:text-white/70 truncate w-full text-center transition-colors">{bm.title}</span>
-              </a>
-              <button
-                onClick={() => removeBookmark(bm.id)}
-                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-white/25 hover:text-red-400/70 transition-all"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
-              <GripVertical className="absolute bottom-1 right-1 w-3 h-3 text-white/15 opacity-0 group-hover:opacity-100 transition-all cursor-grab" />
+              ) : (
+                <>
+                  <a
+                    href={bm.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    draggable="false"
+                    className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-xl hover:bg-white/[0.06] active:bg-white/[0.08] transition-colors cursor-pointer min-h-[64px] justify-center"
+                  >
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center">
+                      {favicon ? (
+                        <img src={favicon} alt={bm.title} className="w-5 h-5 sm:w-6 sm:h-6 rounded opacity-80" loading="lazy"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                            (e.target as HTMLImageElement).nextSibling!.textContent = bm.emoji;
+                          }} />
+                      ) : (
+                        <span className="text-xl">{bm.emoji}</span>
+                      )}
+                      <span className="hidden text-xl">{bm.emoji}</span>
+                    </div>
+                    <span className="text-xs text-white/40 group-hover:text-white/70 truncate w-full text-center transition-colors">{bm.title}</span>
+                  </a>
+                  <button onClick={() => removeBookmark(bm.id)}
+                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-white/25 hover:text-red-400/70 transition-all">
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                  <button onClick={() => startEdit(bm)}
+                    className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 text-white/25 hover:text-amber-400/70 transition-all">
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                  <GripVertical className="absolute bottom-1 right-1 w-3 h-3 text-white/15 opacity-0 group-hover:opacity-100 transition-all cursor-grab" />
+                </>
+              )}
             </div>
           );
         })}

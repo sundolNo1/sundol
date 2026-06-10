@@ -72,6 +72,7 @@ export default function WeatherWidget() {
   const [showPicker, setShowPicker] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [gpsBlocked, setGpsBlocked] = useState(false);
   const [forecast, setForecast] = useState<{ hourly: HourlyItem[]; daily: DailyItem[] } | null>(null);
   const [forecastLoading, setForecastLoading] = useState(false);
   const [currentLatLon, setCurrentLatLon] = useState({ lat: 37.5665, lon: 126.9780 });
@@ -114,8 +115,8 @@ export default function WeatherWidget() {
     if (city.name === "현재 위치") {
       if (!navigator.geolocation) { fetchWeather(37.5665, 126.9780); return; }
       navigator.geolocation.getCurrentPosition(
-        (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
-        () => fetchWeather(37.5665, 126.9780),
+        (pos) => { setGpsBlocked(false); fetchWeather(pos.coords.latitude, pos.coords.longitude); },
+        () => { setGpsBlocked(true); fetchWeather(37.5665, 126.9780); },
         { timeout: 5000 }
       );
     } else {
@@ -135,6 +136,7 @@ export default function WeatherWidget() {
     setSelectedCity(city.name);
     localStorage.setItem("weatherCity", city.name);
     setShowPicker(false);
+    setGpsBlocked(false);
     loadByCity(city);
   };
 
@@ -174,6 +176,13 @@ export default function WeatherWidget() {
                 {city.name}
               </button>
             ))}
+          </div>
+        )}
+
+        {gpsBlocked && (
+          <div className="mb-3 flex items-center gap-1.5 text-[10px] text-amber-300/60 bg-amber-400/[0.06] border border-amber-400/15 rounded-lg px-2.5 py-1.5">
+            <Navigation className="w-3 h-3 flex-shrink-0" />
+            <span>위치 권한 거부됨 — 서울 기준으로 표시 중</span>
           </div>
         )}
 
