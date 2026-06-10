@@ -7,6 +7,7 @@ import NewsWidget from "./components/NewsWidget";
 import SearchBar from "./components/SearchBar";
 import StocksWidget from "./components/StocksWidget";
 import ExchangeWidget from "./components/ExchangeWidget";
+import TodoWidget from "./components/TodoWidget";
 
 export default function Home() {
   return (
@@ -73,12 +74,15 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="fade-up grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" style={{ animationDelay: "400ms" }}>
+        <div className="fade-up grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4" style={{ animationDelay: "400ms" }}>
           <div className="hover:shadow-[0_0_32px_rgba(251,191,36,0.07)] hover:-translate-y-0.5 transition-all duration-300 rounded-2xl">
             <StocksWidget />
           </div>
           <div className="hover:shadow-[0_0_32px_rgba(251,191,36,0.07)] hover:-translate-y-0.5 transition-all duration-300 rounded-2xl">
             <ExchangeWidget />
+          </div>
+          <div className="hover:shadow-[0_0_32px_rgba(251,191,36,0.07)] hover:-translate-y-0.5 transition-all duration-300 rounded-2xl">
+            <TodoWidget />
           </div>
         </div>
       </div>
