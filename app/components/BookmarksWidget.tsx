@@ -10,6 +10,8 @@ interface Bookmark {
   emoji: string;
 }
 
+const BOOKMARKS_VERSION = "3";
+
 const DEFAULT_BOOKMARKS: Bookmark[] = [
   { id: "1", title: "네이버", url: "https://naver.com", emoji: "🟢" },
   { id: "2", title: "구글", url: "https://google.com", emoji: "🔍" },
@@ -35,6 +37,12 @@ export default function BookmarksWidget() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => {
     if (typeof window === "undefined") return DEFAULT_BOOKMARKS;
     try {
+      const savedVersion = localStorage.getItem("bookmarks_version");
+      if (savedVersion !== BOOKMARKS_VERSION) {
+        localStorage.setItem("bookmarks_version", BOOKMARKS_VERSION);
+        localStorage.setItem("bookmarks", JSON.stringify(DEFAULT_BOOKMARKS));
+        return DEFAULT_BOOKMARKS;
+      }
       const saved = localStorage.getItem("bookmarks");
       return saved ? JSON.parse(saved) : DEFAULT_BOOKMARKS;
     } catch {
