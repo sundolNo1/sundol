@@ -253,16 +253,38 @@ export default function MinerPage() {
       const pcx=(g2.px+PW/2)/T, pcy=(g2.py+PH/2)/T;
       const inR=Math.hypot(mtx-pcx,mty-pcy)<=RCH&&mtx>=0&&mty>=0&&mtx<WW&&mty<WH;
 
-      // Mine (left hold, blocked until started)
-      if (startedRef.current&&M.l&&inR) {
-        const bid=g2.tiles[mty*WW+mtx];
+      // Keyboard mine target (Z key): block in front of player, scan up to 3 tiles ahead
+      const kMine=startedRef.current&&K.has("z");
+      let kmtx=mtx, kmty=mty, kInR=inR;
+      if (kMine) {
+        const dir=g2.fr?1:-1;
+        const plTileY=Math.floor((g2.py+PH/2)/T);
+        let found=false;
+        for (let dist=1; dist<=3&&!found; dist++) {
+          for (let dy=-1; dy<=1&&!found; dy++) {
+            const tx2=Math.floor(g2.px/T)+dir*dist+(g2.fr?1:0);
+            const ty2=plTileY+dy;
+            const bid2=getAt(g2.tiles,tx2,ty2);
+            if (bid2!==AIR&&bid2!==BEDROCK) { kmtx=tx2; kmty=ty2; kInR=true; found=true; }
+          }
+        }
+        // fallback: block directly below player if nothing found ahead
+        if (!found) { kmtx=Math.floor((g2.px+PW/2)/T); kmty=Math.floor(g2.py/T)+2; kInR=true; }
+      }
+
+      const mineActive=startedRef.current&&(M.l&&inR||kMine);
+      const finalMtx=kMine?kmtx:mtx, finalMty=kMine?kmty:mty, finalInR=kMine?kInR:inR;
+
+      // Mine (left hold or Z key, blocked until started)
+      if (mineActive) {
+        const bid=g2.tiles[finalMty*WW+finalMtx];
         if (bid!==AIR&&bid!==BEDROCK) {
-          if (!g2.mt||g2.mt.tx!==mtx||g2.mt.ty!==mty) g2.mt={tx:mtx,ty:mty,prog:0};
+          if (!g2.mt||g2.mt.tx!==finalMtx||g2.mt.ty!==finalMty) g2.mt={tx:finalMtx,ty:finalMty,prog:0};
           g2.mt.prog+=1/(60*(BDEFS[bid]?.hard??2));
           if (g2.mt.prog>=1) {
             const dropId=DROPS[bid]!==undefined?DROPS[bid]!:bid;
             if (dropId!==AIR) g2.inv[dropId]=(g2.inv[dropId]??0)+1;
-            g2.tiles[mty*WW+mtx]=AIR;
+            g2.tiles[finalMty*WW+finalMtx]=AIR;
             g2.mt=null;
             if (!g2.sel||(g2.inv[g2.sel]??0)===0) {
               const first=Object.keys(g2.inv).find(id=>g2.inv[+id]>0&&BDEFS[+id]?.place);
@@ -270,7 +292,7 @@ export default function MinerPage() {
             }
           }
         } else g2.mt=null;
-      } else if (!M.l) g2.mt=null;
+      } else if (!M.l&&!kMine) g2.mt=null;
 
       // Place (right click / mobile place button, blocked until started)
       if (startedRef.current&&placeQ.current&&inR&&g2.sel&&(g2.inv[g2.sel]??0)>0&&BDEFS[g2.sel]?.place) {
@@ -389,7 +411,7 @@ export default function MinerPage() {
         <div className="w-px h-3 bg-white/10"/>
         <span className="text-white/50 text-xs">⛏️ 마이너</span>
         {ui.hover && <><div className="w-px h-3 bg-white/10"/><span className="text-amber-300/60 text-xs">{ui.hover}</span></>}
-        <span className="ml-auto text-white/20 text-[10px] hidden sm:block">{started ? "A/D 이동 · 스페이스 점프 · 좌클릭 채굴 · 우클릭 설치" : ""}</span>
+        <span className="ml-auto text-white/20 text-[10px] hidden sm:block">{started ? "A/D 이동 · 스페이스 점프 · Z/좌클릭 채굴 · 우클릭 설치" : ""}</span>
       </div>
 
       {/* Canvas */}
@@ -418,7 +440,7 @@ export default function MinerPage() {
                 </div>
                 <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
                   <span className="text-white/40 text-xs">채굴</span>
-                  <span className="text-amber-200/80 text-xs font-mono">좌클릭 (꾹)</span>
+                  <span className="text-amber-200/80 text-xs font-mono">Z 키 / 좌클릭 (꾹)</span>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
                   <span className="text-white/40 text-xs">블록 설치</span>
