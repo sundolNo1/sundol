@@ -9,7 +9,12 @@ interface NewsItem {
   pubDate: string;
   source: string;
   category: string;
+  image?: string;
 }
+
+const CATEGORY_ICONS: Record<string, string> = {
+  종합: '📰', 국제: '🌐', 스포츠: '⚽',
+};
 
 function timeAgo(dateStr: string): string {
   if (!dateStr) return "";
@@ -98,20 +103,39 @@ export default function NewsWidget() {
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-start gap-2 p-2 sm:p-2 rounded-lg hover:bg-white/[0.05] active:bg-white/[0.07] transition-colors group min-h-[44px]"
+              className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-white/[0.05] active:bg-white/[0.07] transition-colors group min-h-[52px]"
             >
+              {/* 썸네일 */}
+              <div className="flex-shrink-0 w-14 h-10 sm:w-16 sm:h-11 rounded-lg overflow-hidden bg-white/[0.05] flex items-center justify-center">
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt=""
+                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                    onError={(e) => {
+                      const el = e.currentTarget;
+                      el.style.display = 'none';
+                      (el.nextSibling as HTMLElement).style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <span className={`text-lg ${item.image ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
+                  {CATEGORY_ICONS[item.category] ?? '📰'}
+                </span>
+              </div>
+
               <div className="flex-1 min-w-0">
                 <p className="text-xs sm:text-sm text-white/60 group-hover:text-white/90 line-clamp-2 leading-snug transition-colors">
                   {item.title}
                 </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-amber-400/50">{item.source}</span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[10px] sm:text-xs text-amber-400/50">{item.source}</span>
                   {item.pubDate && (
-                    <span className="text-xs text-white/20">{timeAgo(item.pubDate)}</span>
+                    <span className="text-[10px] sm:text-xs text-white/20">{timeAgo(item.pubDate)}</span>
                   )}
                 </div>
               </div>
-              <ExternalLink className="w-3 h-3 text-white/15 group-hover:text-white/40 flex-shrink-0 mt-1 transition-colors" />
+              <ExternalLink className="w-3 h-3 text-white/15 group-hover:text-white/40 flex-shrink-0 transition-colors" />
             </a>
           ))}
         </div>

@@ -34,6 +34,17 @@ interface NewsItem {
   pubDate: string;
   source: string;
   category: string;
+  image?: string;
+}
+
+function extractImage(itemXml: string): string | undefined {
+  const thumbnail = /media:thumbnail[^>]+url="([^"]+)"/i.exec(itemXml)?.[1];
+  if (thumbnail) return thumbnail;
+  const content = /media:content[^>]+url="([^"]+)"[^>]*type="image/i.exec(itemXml)?.[1]
+    ?? /media:content[^>]+type="image[^"]*"[^>]+url="([^"]+)"/i.exec(itemXml)?.[1];
+  if (content) return content;
+  const enclosure = /enclosure[^>]+url="([^"]+)"[^>]*type="image/i.exec(itemXml)?.[1];
+  return enclosure;
 }
 
 function parseRSS(xml: string, source: string, category: string): NewsItem[] {
@@ -49,9 +60,10 @@ function parseRSS(xml: string, source: string, category: string): NewsItem[] {
     const title = titleRegex.exec(item)?.[1]?.trim() ?? "";
     const link = linkRegex.exec(item)?.[1]?.trim() ?? "";
     const pubDate = pubDateRegex.exec(item)?.[1]?.trim() ?? "";
+    const image = extractImage(item);
 
     if (title && link) {
-      items.push({ title, link, pubDate, source, category });
+      items.push({ title, link, pubDate, source, category, ...(image ? { image } : {}) });
     }
   }
   return items.slice(0, 8);
