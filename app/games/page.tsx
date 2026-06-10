@@ -50,7 +50,7 @@ export default function GamesPage() {
 
       <div className="relative max-w-4xl mx-auto">
         {/* 헤더 */}
-        <div className="flex items-center gap-4 mb-10 pt-4">
+        <div className="fade-up flex items-center gap-4 mb-10 pt-4" style={{ animationDelay: "0ms" }}>
           <Link href="/" className="text-white/25 hover:text-amber-300/70 transition-colors text-sm tracking-wide">
             ← sundol
           </Link>
@@ -63,11 +63,12 @@ export default function GamesPage() {
 
         {/* 플레이 가능한 게임 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-          {available.map((game) => (
+          {available.map((game, i) => (
             <Link
               key={game.id}
               href={game.href}
-              className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-6 border border-white/[0.07] hover:border-amber-400/25 hover:bg-white/[0.05] transition-all group"
+              className="fade-up bg-white/[0.03] backdrop-blur-xl rounded-2xl p-6 border border-white/[0.07] hover:border-amber-400/25 hover:bg-white/[0.05] hover:shadow-[0_0_32px_rgba(251,191,36,0.07)] hover:-translate-y-0.5 transition-all duration-300 group"
+              style={{ animationDelay: `${80 + i * 80}ms` }}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="text-5xl opacity-80">{game.emoji}</div>
@@ -96,12 +97,13 @@ export default function GamesPage() {
         {/* 준비 중 */}
         {coming.length > 0 && (
           <>
-            <h2 className="text-white/20 text-xs font-semibold uppercase tracking-widest mb-3">준비 중</h2>
+            <h2 className="fade-up text-white/20 text-xs font-semibold uppercase tracking-widest mb-3" style={{ animationDelay: "240ms" }}>준비 중</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {coming.map((game) => (
+              {coming.map((game, i) => (
                 <div
                   key={game.id}
-                  className="bg-white/[0.02] rounded-2xl p-6 border border-white/[0.04] opacity-40"
+                  className="fade-up bg-white/[0.02] rounded-2xl p-6 border border-white/[0.04] opacity-40"
+                  style={{ animationDelay: `${320 + i * 80}ms` }}
                 >
                   <div className="text-5xl mb-4 grayscale">{game.emoji}</div>
                   <h2 className="text-white/50 font-semibold text-xl mb-1">{game.title}</h2>
