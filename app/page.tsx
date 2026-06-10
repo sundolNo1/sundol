@@ -20,7 +20,7 @@ export default function Home() {
       <div className="relative max-w-6xl mx-auto space-y-3 sm:space-y-6">
         {/* 헤더 */}
         <div className="text-center pt-4 sm:pt-8 pb-1 sm:pb-2">
-          <Link href="/" className="inline-flex items-center justify-center gap-2 sm:gap-3 mb-2 hover:opacity-80 transition-opacity">
+          <a href="/" className="inline-flex items-center justify-center gap-2 sm:gap-3 mb-2 hover:opacity-80 transition-opacity">
             <Image
               src="/character.png"
               alt="sundol character"
@@ -31,7 +31,7 @@ export default function Home() {
             <h1 className="text-3xl sm:text-4xl font-bold tracking-[0.2em] bg-gradient-to-r from-amber-300 via-amber-100 to-white bg-clip-text text-transparent">
               SUNDOL
             </h1>
-          </Link>
+          </a>
           <p className="text-white/25 text-xs tracking-widest uppercase">좋은 하루 보내세요</p>
         </div>
 
