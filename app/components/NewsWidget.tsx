@@ -52,8 +52,9 @@ export default function NewsWidget() {
     fetchNews();
   }, []);
 
-  const categories = ["전체", ...Array.from(new Set(news.map((n) => n.category)))];
-  const filtered = activeSource === "전체" ? news : news.filter((n) => n.category === activeSource);
+  const withImage = news.filter((n) => n.image);
+  const categories = ["전체", ...Array.from(new Set(withImage.map((n) => n.category)))];
+  const filtered = activeSource === "전체" ? withImage : withImage.filter((n) => n.category === activeSource);
 
   return (
     <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/[0.07]">
