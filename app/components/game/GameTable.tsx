@@ -15,16 +15,13 @@ const PHASE_COLORS: Record<string, string> = {
   waiting: '#6b7280', 'pre-flop': '#60a5fa', flop: '#34d399', turn: '#f59e0b', river: '#f87171', showdown: '#fbbf24',
 };
 
-// 5인 테이블 고정 좌석 (나=하단 중앙, 상대 최대 4명)
-// 중앙(50%) 없음 — TL → TR → L → R 순서로 채움
 type SeatPos = { top: string; left?: string; right?: string; transform: string; zIndex: number };
 const ALL_SEATS: SeatPos[] = [
-  { top: '3%', left: '22%',  transform: 'translateX(-50%)', zIndex: 2 }, // 0: 상단 좌
-  { top: '3%', left: '78%',  transform: 'translateX(-50%)', zIndex: 2 }, // 1: 상단 우
-  { top: '44%', left: '1%',  transform: 'translateY(-50%)', zIndex: 2 }, // 2: 왼쪽
-  { top: '44%', right: '1%', transform: 'translateY(-50%)', zIndex: 2 }, // 3: 오른쪽
+  { top: '3%', left: '22%',  transform: 'translateX(-50%)', zIndex: 2 },
+  { top: '3%', left: '78%',  transform: 'translateX(-50%)', zIndex: 2 },
+  { top: '44%', left: '1%',  transform: 'translateY(-50%)', zIndex: 2 },
+  { top: '44%', right: '1%', transform: 'translateY(-50%)', zIndex: 2 },
 ];
-// 인원수별 사용할 슬롯 인덱스
 const SEAT_ORDER = [[], [0], [0, 1], [0, 1, 2], [0, 1, 2, 3]];
 
 export default function GameTable({ gameState, playerId, roomId }: { gameState: any; playerId: string; roomId: string }) {
@@ -67,7 +64,7 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
     v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v.toLocaleString();
 
   return (
-    <div className="min-h-screen flex flex-col select-none"
+    <div className="h-screen flex flex-col select-none overflow-hidden"
       style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(22,101,52,0.06) 0%, transparent 50%), linear-gradient(180deg, #06090e 0%, #080b12 50%, #050508 100%)' }}>
 
       {/* ── Header ── */}
@@ -91,58 +88,58 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
         </button>
       </div>
 
-      {/* ── Game area (flex col: table zone + panels) ── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* ── Main game area — always flex-1, table truly centered ── */}
+      <div className="flex-1 relative overflow-hidden" style={{ minHeight: 0 }}>
 
-        {/* Table zone — relative, takes remaining space */}
-        <div className="flex-1 relative overflow-hidden" style={{ minHeight: 260 }}>
+        {/* Opponent seats */}
+        {others.map((player: any, idx: number) => (
+          <div key={player.id} className="absolute"
+            style={ALL_SEATS[slotIndices[idx]] ?? ALL_SEATS[0]}>
+            <PlayerSeat
+              player={player}
+              isMe={false}
+              phase={gameState.phase}
+              actionDeadline={player.isCurrentActor ? gameState.actionDeadline : null}
+            />
+          </div>
+        ))}
 
-          {/* Opponent seats — absolute around the table */}
-          {others.map((player: any, idx: number) => (
-            <div key={player.id} className="absolute"
-              style={ALL_SEATS[slotIndices[idx]] ?? ALL_SEATS[0]}>
-              <PlayerSeat
-                player={player}
-                isMe={false}
-                phase={gameState.phase}
-                actionDeadline={player.isCurrentActor ? gameState.actionDeadline : null}
-              />
+        {/* Poker table — centered in this zone */}
+        <div className="poker-table absolute"
+          style={{
+            left: '50%', top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 'clamp(260px, 56%, 480px)',
+            aspectRatio: '2 / 1',
+            zIndex: 1,
+          }}>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
+            <div className="flex gap-1.5">
+              {[0, 1, 2, 3, 4].map(i => {
+                const card = gameState.communityCards[i];
+                return card
+                  ? <Card key={i} card={card} hidden={false} large />
+                  : <div key={i} className="rounded-lg" style={{ width: 'clamp(44px,12vw,66px)', height: 'clamp(62px,17vw,92px)', background: 'rgba(0,0,0,0.28)', border: '1px solid rgba(255,255,255,0.07)' }} />;
+              })}
             </div>
-          ))}
-
-          {/* Poker table — centered */}
-          <div className="poker-table absolute"
-            style={{
-              left: '50%', top: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 'clamp(260px, 56%, 480px)',
-              aspectRatio: '2 / 1',
-              zIndex: 1,
-            }}>
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
-              <div className="flex gap-1.5">
-                {[0, 1, 2, 3, 4].map(i => {
-                  const card = gameState.communityCards[i];
-                  return card
-                    ? <Card key={i} card={card} hidden={false} large />
-                    : <div key={i} className="rounded-lg" style={{ width: 'clamp(44px,12vw,66px)', height: 'clamp(62px,17vw,92px)', background: 'rgba(0,0,0,0.28)', border: '1px solid rgba(255,255,255,0.07)' }} />;
-                })}
+            {gameState.pot > 0 && (
+              <div className="px-4 py-1.5 rounded-full font-bold"
+                style={{ background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24', boxShadow: '0 0 20px rgba(251,191,36,0.2)', fontSize: 13 }}>
+                팟 {fmtPot(gameState.pot)}
               </div>
-              {gameState.pot > 0 && (
-                <div className="px-4 py-1.5 rounded-full font-bold"
-                  style={{ background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24', boxShadow: '0 0 20px rgba(251,191,36,0.2)', fontSize: 13 }}>
-                  팟 {fmtPot(gameState.pot)}
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* ── Showdown panel — natural flow, never overlaps table ── */}
+      {/* ── Bottom section — panels + my player + controls ── */}
+      <div className="flex-shrink-0" style={{ background: 'rgba(4,5,10,0.96)', borderTop: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(10px)' }}>
+
+        {/* Showdown panel */}
         {gameState.phase === 'showdown' && gameState.winners.length > 0 && (
-          <div className="mx-3 mb-2 rounded-2xl p-4 text-center flex-shrink-0"
+          <div className="mx-3 mt-2 rounded-2xl p-3 text-center"
             style={{ background: 'linear-gradient(135deg, rgba(30,20,5,0.97), rgba(20,15,3,0.97))', border: '1px solid rgba(251,191,36,0.4)', boxShadow: '0 0 30px rgba(251,191,36,0.2)' }}>
-            <div className="text-yellow-400 font-bold text-base mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+            <div className="text-yellow-400 font-bold text-sm mb-1.5" style={{ fontFamily: "'Playfair Display', serif" }}>
               {gameState.winners.length === 1 ? '🏆 Winner' : '🏆 Split Pot'}
             </div>
             {gameState.winners.map((w: any) => (
@@ -158,21 +155,21 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
               </div>
             ))}
             {isHost && (
-              <button className="mt-3 px-8 py-2 rounded-xl font-bold text-sm transition-all active:scale-95"
+              <button className="mt-2 px-8 py-2 rounded-xl font-bold text-sm transition-all active:scale-95"
                 style={{ background: 'linear-gradient(135deg, #166534, #14532d)', border: '1px solid rgba(74,222,128,0.3)', color: '#86efac', boxShadow: '0 4px 16px rgba(22,101,52,0.4)' }}
                 onClick={() => socket.emit('next-round')}>다음 라운드</button>
             )}
           </div>
         )}
 
-        {/* ── Waiting room panel — natural flow ── */}
+        {/* Waiting panel */}
         {gameState.phase === 'waiting' && (
-          <div className="mx-3 mb-2 rounded-2xl p-4 flex-shrink-0"
+          <div className="mx-3 mt-2 rounded-2xl p-3"
             style={{ background: 'rgba(8,10,18,0.95)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(12px)' }}>
             <p className="text-gray-500 text-xs text-center mb-2 tracking-widest uppercase">
               참가자 {gameState.players.length}명{gameState.players.length < 2 && ' · 최소 2명 필요'}
             </p>
-            <div className="flex flex-wrap gap-1.5 justify-center mb-3">
+            <div className="flex flex-wrap gap-1.5 justify-center mb-2">
               {gameState.players.map((p: any) => (
                 <span key={p.id} className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1"
                   style={{
@@ -186,7 +183,7 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
               ))}
             </div>
             {canAddBot && (
-              <div className="flex justify-center mb-3">
+              <div className="flex justify-center mb-2">
                 <button onClick={() => socket.emit('add-bot')} className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95"
                   style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.35)', color: '#a78bfa' }}>
                   + 봇 추가
@@ -195,7 +192,7 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
             )}
             {canStart ? (
               <div className="text-center">
-                <div className="flex gap-3 justify-center mb-3 flex-wrap">
+                <div className="flex gap-3 justify-center mb-2 flex-wrap">
                   {([
                     { label: '스몰 블라인드', val: smallBlind, setter: (v: number) => { setSmallBlind(v); setBigBlind(v * 2); } },
                     { label: '빅 블라인드', val: bigBlind, setter: (v: number) => setBigBlind(v) },
@@ -208,7 +205,7 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
                     </div>
                   ))}
                 </div>
-                <button className="px-10 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95"
+                <button className="px-10 py-2 rounded-xl font-bold text-sm transition-all active:scale-95"
                   style={{ background: 'linear-gradient(135deg, #166534, #14532d)', border: '1px solid rgba(74,222,128,0.3)', color: '#86efac', boxShadow: '0 4px 20px rgba(22,101,52,0.4)' }}
                   onClick={() => socket.emit('start-game', { smallBlind, bigBlind })}>게임 시작</button>
               </div>
@@ -219,10 +216,8 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
             )}
           </div>
         )}
-      </div>
 
-      {/* ── Bottom bar — my player + betting controls ── */}
-      <div className="flex-shrink-0" style={{ background: 'rgba(4,5,10,0.96)', borderTop: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(10px)' }}>
+        {/* My player */}
         {myPlayer && (
           <PlayerSeat
             player={myPlayer}
@@ -232,6 +227,8 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
             actionDeadline={myPlayer.isCurrentActor ? gameState.actionDeadline : null}
           />
         )}
+
+        {/* Betting controls */}
         {myPlayer && !['waiting', 'showdown'].includes(gameState.phase) && (
           <BettingControls gameState={gameState} playerId={playerId} />
         )}
