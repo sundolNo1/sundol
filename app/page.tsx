@@ -46,7 +46,7 @@ export default function Home() {
           <div className="text-2xl sm:text-3xl opacity-80 flex-shrink-0">🎮</div>
           <div className="min-w-0">
             <h2 className="text-[#f0ead6] font-semibold tracking-wide group-hover:text-amber-200 transition-colors text-sm sm:text-base">미니게임</h2>
-            <p className="text-white/30 text-xs mt-0.5 tracking-wide truncate">Texas Hold'em 외 1개 · 계속 업데이트 중</p>
+            <p className="text-white/30 text-xs mt-0.5 tracking-wide truncate">Texas Hold'em · 마이너 · 계속 업데이트 중</p>
           </div>
           <div className="ml-auto text-white/20 group-hover:text-amber-400/60 transition-colors text-lg flex-shrink-0">→</div>
         </Link>

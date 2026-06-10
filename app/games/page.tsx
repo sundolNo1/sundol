@@ -25,14 +25,14 @@ const GAMES: Game[] = [
     available: true,
   },
   {
-    id: "coming1",
-    title: "곧 추가 예정",
-    description: "새로운 게임이 준비 중입니다.",
-    emoji: "🎮",
-    href: "#",
-    players: "-",
-    tags: [],
-    available: false,
+    id: "miner",
+    title: "마이너",
+    description: "2D 테라리아 스타일 채굴 게임. 블록을 캐고, 땅을 파고, 희귀 광석을 찾아보세요.",
+    emoji: "⛏️",
+    href: "/miner",
+    players: "1인",
+    tags: ["싱글플레이", "건설", "탐험"],
+    available: true,
   },
 ];
 
