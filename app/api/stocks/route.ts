@@ -12,7 +12,7 @@ const STOCKS = [
 async function fetchQuote(symbol: string) {
   const res = await fetch(
     `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`,
-    { next: { revalidate: 300 }, headers: { "User-Agent": "Mozilla/5.0" } }
+    { next: { revalidate: 600 }, headers: { "User-Agent": "Mozilla/5.0" } }
   );
   if (!res.ok) return null;
   const data = await res.json();

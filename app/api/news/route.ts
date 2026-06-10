@@ -76,7 +76,7 @@ export async function GET() {
     RSS_FEEDS.map(async (feed) => {
       try {
         const res = await fetch(feed.url, {
-          next: { revalidate: 600 },
+          next: { revalidate: 1800 },
           headers: { "User-Agent": "Mozilla/5.0" },
         });
         if (!res.ok) return;

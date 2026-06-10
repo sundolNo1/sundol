@@ -50,6 +50,9 @@ export default function BookmarksWidget() {
   });
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", url: "", emoji: "🌐" });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
@@ -133,7 +136,7 @@ export default function BookmarksWidget() {
 
       <div className="grid grid-cols-4 sm:grid-cols-3 md:grid-cols-4 gap-1 sm:gap-2">
         {bookmarks.map((bm) => {
-          const favicon = getFavicon(bm.url);
+          const favicon = mounted ? getFavicon(bm.url) : null;
           return (
             <div key={bm.id} className="group relative">
               <a
@@ -148,6 +151,7 @@ export default function BookmarksWidget() {
                       src={favicon}
                       alt={bm.title}
                       className="w-5 h-5 sm:w-6 sm:h-6 rounded opacity-80"
+                      loading="lazy"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";
                         (e.target as HTMLImageElement).nextSibling!.textContent = bm.emoji;
