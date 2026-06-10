@@ -149,6 +149,8 @@ export default function MinerPage() {
   const [ui, setUi] = useState<{
     inv: Record<Bid,number>; sel: Bid; hover: string;
   }>({ inv:{}, sel:0, hover:"" });
+  const [started, setStarted] = useState(false);
+  const startedRef = useRef(false);
 
   useEffect(() => {
     const cv = cvs.current; if (!cv) return;
@@ -223,10 +225,10 @@ export default function MinerPage() {
       const K=keys.current, M=mouse.current, MK=mkeys.current;
       g2.tick=(g2.tick+1)%24000;
 
-      // Move
-      const ml=K.has("a")||K.has("arrowleft")||MK.l;
-      const mr=K.has("d")||K.has("arrowright")||MK.r;
-      const mj=K.has("w")||K.has(" ")||K.has("arrowup")||MK.j;
+      // Move (blocked until game started)
+      const ml=(startedRef.current)&&(K.has("a")||K.has("arrowleft")||MK.l);
+      const mr=(startedRef.current)&&(K.has("d")||K.has("arrowright")||MK.r);
+      const mj=(startedRef.current)&&(K.has("w")||K.has(" ")||K.has("arrowup")||MK.j);
       if (ml) { g2.vx=-SPD; g2.fr=false; }
       else if (mr) { g2.vx=SPD; g2.fr=true; }
       else g2.vx*=.72;
@@ -251,8 +253,8 @@ export default function MinerPage() {
       const pcx=(g2.px+PW/2)/T, pcy=(g2.py+PH/2)/T;
       const inR=Math.hypot(mtx-pcx,mty-pcy)<=RCH&&mtx>=0&&mty>=0&&mtx<WW&&mty<WH;
 
-      // Mine (left hold)
-      if (M.l&&inR) {
+      // Mine (left hold, blocked until started)
+      if (startedRef.current&&M.l&&inR) {
         const bid=g2.tiles[mty*WW+mtx];
         if (bid!==AIR&&bid!==BEDROCK) {
           if (!g2.mt||g2.mt.tx!==mtx||g2.mt.ty!==mty) g2.mt={tx:mtx,ty:mty,prog:0};
@@ -270,8 +272,8 @@ export default function MinerPage() {
         } else g2.mt=null;
       } else if (!M.l) g2.mt=null;
 
-      // Place (right click / mobile place button)
-      if ((placeQ.current)&&inR&&g2.sel&&(g2.inv[g2.sel]??0)>0&&BDEFS[g2.sel]?.place) {
+      // Place (right click / mobile place button, blocked until started)
+      if (startedRef.current&&placeQ.current&&inR&&g2.sel&&(g2.inv[g2.sel]??0)>0&&BDEFS[g2.sel]?.place) {
         const cur=getAt(g2.tiles,mtx,mty);
         if (cur===AIR) {
           const px1=Math.floor(g2.px/T), px2=Math.floor((g2.px+PW-1)/T);
@@ -387,12 +389,69 @@ export default function MinerPage() {
         <div className="w-px h-3 bg-white/10"/>
         <span className="text-white/50 text-xs">⛏️ 마이너</span>
         {ui.hover && <><div className="w-px h-3 bg-white/10"/><span className="text-amber-300/60 text-xs">{ui.hover}</span></>}
-        <span className="ml-auto text-white/20 text-[10px] hidden sm:block">A/D 이동 · 스페이스 점프 · 좌클릭 채굴 · 우클릭 설치</span>
+        <span className="ml-auto text-white/20 text-[10px] hidden sm:block">{started ? "A/D 이동 · 스페이스 점프 · 좌클릭 채굴 · 우클릭 설치" : ""}</span>
       </div>
 
       {/* Canvas */}
       <div className="flex-1 relative overflow-hidden">
         <canvas ref={cvs} className="w-full h-full block touch-none"/>
+
+        {/* Start screen overlay */}
+        {!started && (
+          <div
+            className="absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => { setStarted(true); startedRef.current=true; }}
+          >
+            <div className="bg-[#06090f]/90 border border-white/[0.1] rounded-2xl px-8 py-8 text-center max-w-xs w-full mx-4 shadow-2xl">
+              <div className="text-4xl mb-3">⛏️</div>
+              <h2 className="text-[#f0ead6] text-2xl font-bold tracking-widest mb-6">마이너</h2>
+
+              {/* Desktop controls */}
+              <div className="hidden sm:block mb-6 space-y-2 text-left">
+                <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
+                  <span className="text-white/40 text-xs">이동</span>
+                  <span className="text-amber-200/80 text-xs font-mono">A / D</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
+                  <span className="text-white/40 text-xs">점프</span>
+                  <span className="text-amber-200/80 text-xs font-mono">스페이스</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
+                  <span className="text-white/40 text-xs">채굴</span>
+                  <span className="text-amber-200/80 text-xs font-mono">좌클릭 (꾹)</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5">
+                  <span className="text-white/40 text-xs">블록 설치</span>
+                  <span className="text-amber-200/80 text-xs font-mono">우클릭</span>
+                </div>
+              </div>
+
+              {/* Mobile controls */}
+              <div className="sm:hidden mb-6 space-y-2 text-left">
+                <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
+                  <span className="text-white/40 text-xs">이동</span>
+                  <span className="text-amber-200/80 text-xs">◀ ▶ 버튼</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
+                  <span className="text-white/40 text-xs">점프</span>
+                  <span className="text-amber-200/80 text-xs">점프 버튼</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
+                  <span className="text-white/40 text-xs">채굴</span>
+                  <span className="text-amber-200/80 text-xs">화면 터치 (꾹)</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5">
+                  <span className="text-white/40 text-xs">블록 설치</span>
+                  <span className="text-amber-200/80 text-xs">설치 버튼</span>
+                </div>
+              </div>
+
+              <div className="bg-amber-400/15 border border-amber-400/30 rounded-xl px-4 py-3 text-amber-200/80 text-sm font-medium cursor-pointer hover:bg-amber-400/25 transition-colors">
+                클릭하여 시작
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Mobile D-pad */}
         <div className="absolute bottom-3 left-3 flex gap-2 sm:hidden z-20">
