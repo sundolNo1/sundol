@@ -71,7 +71,7 @@ function genWorld() {
     tx += 8 + Math.floor(Math.random()*8);
   }
   const spX=Math.floor(WW/2), spY=heights[Math.floor(WW/2)]-2;
-  return { tiles, spX, spY };
+  return { tiles, heights, spX, spY };
 }
 
 // ══ Helpers ══════════════════════════════════════════════════
@@ -127,6 +127,7 @@ function drawBlk(ctx: CanvasRenderingContext2D, bx:number, by:number, b:Bid, bAb
 // ══ Game state type ══════════════════════════════════════════
 interface Gs {
   tiles: Uint8Array;
+  heights: number[];
   px:number; py:number; vx:number; vy:number; og:boolean; fr:boolean;
   camX:number; camY:number;
   inv: Record<Bid,number>;
@@ -164,9 +165,9 @@ export default function MinerPage() {
     resize();
     const ro = new ResizeObserver(resize); ro.observe(cv);
 
-    const { tiles, spX, spY } = genWorld();
+    const { tiles, heights, spX, spY } = genWorld();
     const g = gs.current;
-    g.tiles=tiles; g.px=spX*T; g.py=spY*T;
+    g.tiles=tiles; g.heights=heights; g.px=spX*T; g.py=spY*T;
     g.vx=0; g.vy=0; g.og=false; g.fr=true;
     g.camX=g.px-g.cw/2; g.camY=g.py-g.ch/2;
     g.inv={}; g.sel=0; g.mt=null; g.tick=6000;
@@ -254,23 +255,23 @@ export default function MinerPage() {
       const pcx=(g2.px+PW/2)/T, pcy=(g2.py+PH/2)/T;
       const inR=Math.hypot(mtx-pcx,mty-pcy)<=RCH&&mtx>=0&&mty>=0&&mtx<WW&&mty<WH;
 
-      // Keyboard mine target (Z key): block in front of player, scan up to 3 tiles ahead
+      // Keyboard mine target (Z key): scan in front of player symmetrically
       const kMine=startedRef.current&&K.has("z");
       let kmtx=mtx, kmty=mty, kInR=inR;
       if (kMine) {
         const dir=g2.fr?1:-1;
+        const plCx=Math.floor((g2.px+PW/2)/T);
         const plTileY=Math.floor((g2.py+PH/2)/T);
         let found=false;
         for (let dist=1; dist<=3&&!found; dist++) {
           for (let dy=-1; dy<=1&&!found; dy++) {
-            const tx2=Math.floor(g2.px/T)+dir*dist+(g2.fr?1:0);
+            const tx2=plCx+dir*dist;
             const ty2=plTileY+dy;
             const bid2=getAt(g2.tiles,tx2,ty2);
             if (bid2!==AIR&&bid2!==BEDROCK) { kmtx=tx2; kmty=ty2; kInR=true; found=true; }
           }
         }
-        // fallback: block directly below player if nothing found ahead
-        if (!found) { kmtx=Math.floor((g2.px+PW/2)/T); kmty=Math.floor(g2.py/T)+2; kInR=true; }
+        if (!found) { kmtx=plCx; kmty=plTileY+1; kInR=true; }
       }
 
       const mineActive=startedRef.current&&(M.l&&inR||kMine);
@@ -324,10 +325,21 @@ export default function MinerPage() {
       const tn=g2.tick/24000;
       const isDay=tn>.2&&tn<.8;
 
-      // Sky
+      // Sky (with dawn/dusk transition)
       const sg=ctx.createLinearGradient(0,0,0,ch);
-      if (isDay) { sg.addColorStop(0,"#1a6abf"); sg.addColorStop(1,"#4aabdf"); }
-      else       { sg.addColorStop(0,"#050c1a"); sg.addColorStop(1,"#0a1530"); }
+      if (tn>=.25&&tn<=.75) {           // day
+        sg.addColorStop(0,"#1a6abf"); sg.addColorStop(1,"#4aabdf");
+      } else if (tn>.75&&tn<.85) {       // dusk
+        const t2=(tn-.75)/.1;
+        sg.addColorStop(0,`rgb(${Math.round(26+t2*(10-26))},${Math.round(106+t2*(12-106))},${Math.round(191+t2*(26-191))})`);
+        sg.addColorStop(.5,"#e07030"); sg.addColorStop(1,"#1a1a40");
+      } else if (tn>.15&&tn<.25) {       // dawn
+        const t2=(tn-.15)/.1;
+        sg.addColorStop(0,`rgb(${Math.round(10+t2*(26-10))},${Math.round(12+t2*(106-12))},${Math.round(26+t2*(191-26))})`);
+        sg.addColorStop(.5,"#e06020"); sg.addColorStop(1,"#1a1a40");
+      } else {                           // night
+        sg.addColorStop(0,"#050c1a"); sg.addColorStop(1,"#0a1530");
+      }
       ctx.fillStyle=sg; ctx.fillRect(0,0,cw,ch);
 
       // Stars (night)
@@ -363,10 +375,21 @@ export default function MinerPage() {
         ctx.fillStyle="#333";   ctx.fillRect(mx*T,my*T-7,T,4);
         ctx.fillStyle="#4caf50"; ctx.fillRect(mx*T,my*T-7,T*prog,4);
       }
-      // Hover outline
-      if (inR) {
-        ctx.strokeStyle="rgba(255,255,255,.45)"; ctx.lineWidth=1.5;
-        ctx.strokeRect(mtx*T+.75,mty*T+.75,T-1.5,T-1.5);
+      // Underground darkness (depth-based)
+      const camCX=Math.max(0,Math.min(WW-1,Math.floor((camX+cw/2)/T)));
+      const surface=g2.heights[camCX]??48;
+      const depth=(camY+ch/2)/T - surface;
+      if (depth>3) {
+        const alpha=Math.min(.8,(depth-3)/28*.8);
+        ctx.fillStyle=`rgba(0,0,10,${alpha})`; ctx.fillRect(0,0,cw,ch);
+      }
+
+      // Hover outline (Z키 사용 시 타겟 블록 강조)
+      const hlTx=kMine?kmtx:mtx, hlTy=kMine?kmty:mty, hlInR=kMine?kInR:inR;
+      if (hlInR) {
+        ctx.strokeStyle=kMine?"rgba(255,220,60,.7)":"rgba(255,255,255,.45)";
+        ctx.lineWidth=1.5;
+        ctx.strokeRect(hlTx*T+.75,hlTy*T+.75,T-1.5,T-1.5);
       }
 
       // Player
@@ -384,6 +407,12 @@ export default function MinerPage() {
       ctx.fillRect(px2+PW,    py2+PH*.36,PW*.18,PH*.34);
 
       ctx.restore();
+
+      // Auto-select first placeable if nothing selected
+      if ((!g2.sel||(g2.inv[g2.sel]??0)===0)) {
+        const first=Object.keys(g2.inv).find(id=>g2.inv[+id]>0&&BDEFS[+id]?.place);
+        if (first) g2.sel=+first;
+      }
 
       // UI update (every 8 frames)
       if (++uiTimer>=8) {
