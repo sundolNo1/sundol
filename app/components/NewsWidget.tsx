@@ -112,6 +112,8 @@ export default function NewsWidget() {
                   <img
                     src={item.image}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                     onError={(e) => {
                       const el = e.currentTarget;
