@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { socket } from './socket';
 import Card from './Card';
 import PlayerSeat from './PlayerSeat';
@@ -12,6 +13,36 @@ const PHASE_LABELS: Record<string, string> = {
 };
 const PHASE_COLORS: Record<string, string> = {
   waiting: '#6b7280', 'pre-flop': '#60a5fa', flop: '#34d399', turn: '#f59e0b', river: '#f87171', showdown: '#fbbf24',
+};
+
+// Absolute positions for opponent seats around the table.
+// Index 0 = first opponent; configs keyed by total opponent count.
+const SEAT_CONFIGS: Record<number, React.CSSProperties[]> = {
+  1: [
+    { top: '3%', left: '50%', transform: 'translateX(-50%)' },
+  ],
+  2: [
+    { top: '3%', left: '22%', transform: 'translateX(-50%)' },
+    { top: '3%', left: '78%', transform: 'translateX(-50%)' },
+  ],
+  3: [
+    { top: '3%', left: '14%', transform: 'translateX(-50%)' },
+    { top: '3%', left: '50%', transform: 'translateX(-50%)' },
+    { top: '3%', left: '86%', transform: 'translateX(-50%)' },
+  ],
+  4: [
+    { top: '3%', left: '22%', transform: 'translateX(-50%)' },
+    { top: '3%', left: '78%', transform: 'translateX(-50%)' },
+    { top: '46%', left: '1%', transform: 'translateY(-50%)' },
+    { top: '46%', left: '99%', transform: 'translate(-100%, -50%)' },
+  ],
+  5: [
+    { top: '3%', left: '14%', transform: 'translateX(-50%)' },
+    { top: '3%', left: '50%', transform: 'translateX(-50%)' },
+    { top: '3%', left: '86%', transform: 'translateX(-50%)' },
+    { top: '46%', left: '1%', transform: 'translateY(-50%)' },
+    { top: '46%', left: '99%', transform: 'translate(-100%, -50%)' },
+  ],
 };
 
 export default function GameTable({ gameState, playerId, roomId }: { gameState: any; playerId: string; roomId: string }) {
@@ -48,12 +79,20 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
   const canStart = isHost && gameState.phase === 'waiting' && gameState.players.length >= 2;
   const canAddBot = isHost && gameState.phase === 'waiting' && gameState.players.length < 6;
   const phaseColor = PHASE_COLORS[gameState.phase] || '#9ca3af';
+  const seatConfig = SEAT_CONFIGS[Math.min(others.length, 5)] ?? [];
+
+  const fmtPot = (v: number) =>
+    v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v.toLocaleString();
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(22,101,52,0.08) 0%, transparent 50%), linear-gradient(180deg, #06090e 0%, #080b12 50%, #050508 100%)' }}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-3 sm:px-5 py-2" style={{ background: 'rgba(0,0,0,0.5)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(10px)' }}>
+    <div className="min-h-screen flex flex-col select-none"
+      style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(22,101,52,0.06) 0%, transparent 50%), linear-gradient(180deg, #06090e 0%, #080b12 50%, #050508 100%)' }}>
+
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between px-3 sm:px-5 py-2 flex-shrink-0"
+        style={{ background: 'rgba(0,0,0,0.55)', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(10px)' }}>
         <div className="flex items-center gap-2 min-w-0">
+          <Link href="/games" className="text-gray-500 hover:text-gray-300 transition-colors mr-0.5" style={{ fontSize: 13 }}>←</Link>
           <span className="font-bold tracking-wide whitespace-nowrap text-xs sm:text-sm flex-shrink-0"
             style={{ fontFamily: "'Playfair Display', serif", background: 'linear-gradient(135deg, #fcd34d, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
             ♠ Hold'em
@@ -64,128 +103,148 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
             {PHASE_LABELS[gameState.phase]}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          <button onClick={copyRoomId} className="text-xs px-2 sm:px-3 py-1.5 rounded-lg transition-all duration-150"
-            style={{ background: copied ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.06)', border: `1px solid ${copied ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.1)'}`, color: copied ? '#4ade80' : '#9ca3af' }}>
-            {copied ? '✓' : `# ${roomId}`}
-          </button>
-          {myPlayer && (
-            <div className="text-xs px-2 sm:px-3 py-1.5 rounded-lg font-semibold"
-              style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)', color: '#fbbf24' }}>
-              {myPlayer.chips >= 1000000 ? `${(myPlayer.chips / 1000000).toFixed(2)}M` : myPlayer.chips.toLocaleString()}
-            </div>
-          )}
-        </div>
+        <button onClick={copyRoomId} className="text-xs px-2 sm:px-3 py-1.5 rounded-lg transition-all duration-150 flex-shrink-0"
+          style={{ background: copied ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.06)', border: `1px solid ${copied ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.1)'}`, color: copied ? '#4ade80' : '#9ca3af' }}>
+          {copied ? '✓ 복사됨' : `# ${roomId}`}
+        </button>
       </div>
 
-      {/* Table area */}
-      <div className="flex-1 flex flex-col items-center justify-center p-3 gap-2">
-        {others.slice(0, 3).length > 0 && (
-          <div className="flex justify-around items-end gap-4" style={{ width: '52%', minWidth: 260, maxWidth: 480 }}>
-            {others.slice(0, 3).map((player: any) => (
-              <PlayerSeat key={player.id} player={player} isMe={false} phase={gameState.phase} actionDeadline={player.isCurrentActor ? gameState.actionDeadline : null} />
+      {/* ── Game area ── */}
+      <div className="flex-1 relative overflow-hidden" style={{ minHeight: 340 }}>
+
+        {/* Opponent seats — absolute around the table */}
+        {others.map((player: any, idx: number) => (
+          <div key={player.id} className="absolute" style={seatConfig[idx] ?? { top: '3%', left: '50%', transform: 'translateX(-50%)' }}>
+            <PlayerSeat
+              player={player}
+              isMe={false}
+              phase={gameState.phase}
+              actionDeadline={player.isCurrentActor ? gameState.actionDeadline : null}
+            />
+          </div>
+        ))}
+
+        {/* Poker table — centered */}
+        <div className="poker-table absolute"
+          style={{
+            left: '50%', top: '46%',
+            transform: 'translate(-50%, -50%)',
+            width: 'clamp(280px, 58%, 500px)',
+            aspectRatio: '2 / 1',
+          }}>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
+            <div className="flex gap-1.5">
+              {[0, 1, 2, 3, 4].map(i => (
+                <Card key={i} card={gameState.communityCards[i] || null} hidden={!gameState.communityCards[i]} large />
+              ))}
+            </div>
+            {gameState.pot > 0 && (
+              <div className="px-4 py-1.5 rounded-full font-bold"
+                style={{ background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24', boxShadow: '0 0 20px rgba(251,191,36,0.2)', fontSize: 13 }}>
+                팟 {fmtPot(gameState.pot)}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Showdown ── */}
+        {gameState.phase === 'showdown' && gameState.winners.length > 0 && (
+          <div className="absolute bottom-2 left-3 right-3 rounded-2xl p-4 text-center z-10"
+            style={{ background: 'linear-gradient(135deg, rgba(30,20,5,0.97), rgba(20,15,3,0.97))', border: '1px solid rgba(251,191,36,0.4)', boxShadow: '0 0 30px rgba(251,191,36,0.2)' }}>
+            <div className="text-yellow-400 font-bold text-base mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+              {gameState.winners.length === 1 ? '🏆 Winner' : '🏆 Split Pot'}
+            </div>
+            {gameState.winners.map((w: any) => (
+              <div key={w.playerId} className="text-white mb-1 text-sm">
+                <span className="font-bold">{w.playerName}</span>
+                {w.hand && (
+                  <span className="mx-2 text-xs px-2 py-0.5 rounded-full"
+                    style={{ background: 'rgba(251,191,36,0.15)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.3)' }}>
+                    {w.hand.name}
+                  </span>
+                )}
+                <span className="text-green-400 font-bold"> +{fmtPot(w.pot)}</span>
+              </div>
             ))}
+            {isHost && (
+              <button className="mt-3 px-8 py-2 rounded-xl font-bold text-sm transition-all active:scale-95"
+                style={{ background: 'linear-gradient(135deg, #166534, #14532d)', border: '1px solid rgba(74,222,128,0.3)', color: '#86efac', boxShadow: '0 4px 16px rgba(22,101,52,0.4)' }}
+                onClick={() => socket.emit('next-round')}>다음 라운드</button>
+            )}
           </div>
         )}
 
-        <div className="flex items-center w-full max-w-4xl gap-8">
-          <div className="flex-1 flex justify-end">
-            {others[3] && <PlayerSeat player={others[3]} isMe={false} phase={gameState.phase} actionDeadline={others[3].isCurrentActor ? gameState.actionDeadline : null} />}
-          </div>
-          <div className="poker-table flex-shrink-0 relative rounded-[50%]" style={{ width: '52%', maxWidth: 480, aspectRatio: '2/1', minHeight: '160px' }}>
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
-              <div className="flex gap-2">
-                {[0, 1, 2, 3, 4].map(i => <Card key={i} card={gameState.communityCards[i] || null} hidden={!gameState.communityCards[i]} large />)}
-              </div>
-              {gameState.pot > 0 && (
-                <div className="px-4 py-1 rounded-full text-sm font-bold" style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24', boxShadow: '0 0 20px rgba(251,191,36,0.2)' }}>
-                  팟 {gameState.pot.toLocaleString()}
-                </div>
-              )}
+        {/* ── Waiting room ── */}
+        {gameState.phase === 'waiting' && (
+          <div className="absolute bottom-2 left-3 right-3 rounded-2xl p-4 z-10"
+            style={{ background: 'rgba(8,10,18,0.93)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(12px)' }}>
+            <p className="text-gray-500 text-xs text-center mb-2 tracking-widest uppercase">
+              참가자 {gameState.players.length}명{gameState.players.length < 2 && ' · 최소 2명 필요'}
+            </p>
+            <div className="flex flex-wrap gap-1.5 justify-center mb-3">
+              {gameState.players.map((p: any) => (
+                <span key={p.id} className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1"
+                  style={{
+                    background: p.id === playerId ? 'rgba(74,222,128,0.1)' : p.isBot ? 'rgba(139,92,246,0.1)' : 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${p.id === playerId ? 'rgba(74,222,128,0.3)' : p.isBot ? 'rgba(139,92,246,0.35)' : 'rgba(255,255,255,0.1)'}`,
+                    color: p.id === playerId ? '#4ade80' : p.isBot ? '#a78bfa' : '#9ca3af',
+                  }}>
+                  {p.isBot && <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: '0.05em' }}>BOT</span>}
+                  {p.id === playerId ? `${p.name} (나)` : p.name}
+                </span>
+              ))}
             </div>
+            {canAddBot && (
+              <div className="flex justify-center mb-3">
+                <button onClick={() => socket.emit('add-bot')} className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95"
+                  style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.35)', color: '#a78bfa' }}>
+                  + 봇 추가
+                </button>
+              </div>
+            )}
+            {canStart ? (
+              <div className="text-center">
+                <div className="flex gap-3 justify-center mb-3 flex-wrap">
+                  {([
+                    { label: '스몰 블라인드', val: smallBlind, setter: (v: number) => { setSmallBlind(v); setBigBlind(v * 2); } },
+                    { label: '빅 블라인드', val: bigBlind, setter: (v: number) => setBigBlind(v) },
+                  ] as { label: string; val: number; setter: (v: number) => void }[]).map(({ label, val, setter }) => (
+                    <div key={label} className="text-center">
+                      <label className="text-xs text-gray-500 block mb-1 tracking-wide">{label}</label>
+                      <input type="number" className="w-24 px-2 py-1.5 rounded-xl text-center text-sm font-bold focus:outline-none"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(251,191,36,0.25)', color: '#fbbf24' }}
+                        value={val} onChange={e => setter(Math.max(1, Number(e.target.value)))} />
+                    </div>
+                  ))}
+                </div>
+                <button className="px-10 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95"
+                  style={{ background: 'linear-gradient(135deg, #166534, #14532d)', border: '1px solid rgba(74,222,128,0.3)', color: '#86efac', boxShadow: '0 4px 20px rgba(22,101,52,0.4)' }}
+                  onClick={() => socket.emit('start-game', { smallBlind, bigBlind })}>게임 시작</button>
+              </div>
+            ) : (
+              <p className="text-gray-600 text-sm text-center">
+                {isHost ? '다른 플레이어를 기다리는 중...' : '방장이 게임을 시작하면 시작됩니다'}
+              </p>
+            )}
           </div>
-          <div className="flex-1 flex justify-start">
-            {others[4] && <PlayerSeat player={others[4]} isMe={false} phase={gameState.phase} actionDeadline={others[4].isCurrentActor ? gameState.actionDeadline : null} />}
-          </div>
-        </div>
-
-        <div>
-          <PlayerSeat player={myPlayer} isMe phase={gameState.phase} handStrength={gameState.myHandStrength} />
-        </div>
+        )}
       </div>
 
-      {/* Showdown */}
-      {gameState.phase === 'showdown' && gameState.winners.length > 0 && (
-        <div className="mx-4 mb-2 rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg, rgba(30,20,5,0.95), rgba(20,15,3,0.95))', border: '1px solid rgba(251,191,36,0.4)', boxShadow: '0 0 30px rgba(251,191,36,0.2)' }}>
-          <div className="text-yellow-400 font-bold text-lg mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
-            {gameState.winners.length === 1 ? '🏆 Winner' : '🏆 Split Pot'}
-          </div>
-          {gameState.winners.map((w: any) => (
-            <div key={w.playerId} className="text-white mb-1">
-              <span className="font-bold">{w.playerName}</span>
-              {w.hand && <span className="mx-2 text-sm px-2 py-0.5 rounded-full" style={{ background: 'rgba(251,191,36,0.15)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.3)' }}>{w.hand.name}</span>}
-              <span className="text-green-400 font-bold">+{w.pot.toLocaleString()}</span>
-            </div>
-          ))}
-          {isHost && (
-            <button className="mt-4 px-8 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95"
-              style={{ background: 'linear-gradient(135deg, #166534, #14532d)', border: '1px solid rgba(74,222,128,0.3)', color: '#86efac', boxShadow: '0 4px 16px rgba(22,101,52,0.4)' }}
-              onClick={() => socket.emit('next-round')}>다음 라운드</button>
-          )}
-        </div>
-      )}
-
-      {/* Waiting room */}
-      {gameState.phase === 'waiting' && (
-        <div className="mx-4 mb-2 rounded-2xl p-5" style={{ background: 'rgba(10,10,18,0.8)', border: '1px solid rgba(255,255,255,0.07)' }}>
-          <p className="text-gray-500 text-xs text-center mb-3 tracking-widest uppercase">
-            참가자 {gameState.players.length}명{gameState.players.length < 2 && ' · 최소 2명 필요'}
-          </p>
-          <div className="flex flex-wrap gap-2 justify-center mb-4">
-            {gameState.players.map((p: any) => (
-              <span key={p.id} className="px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1"
-                style={{ background: p.id === playerId ? 'rgba(74,222,128,0.1)' : p.isBot ? 'rgba(139,92,246,0.1)' : 'rgba(255,255,255,0.05)', border: `1px solid ${p.id === playerId ? 'rgba(74,222,128,0.3)' : p.isBot ? 'rgba(139,92,246,0.35)' : 'rgba(255,255,255,0.1)'}`, color: p.id === playerId ? '#4ade80' : p.isBot ? '#a78bfa' : '#9ca3af' }}>
-                {p.isBot && <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.05em' }}>BOT</span>}
-                {p.id === playerId ? `${p.name} (나)` : p.name}
-              </span>
-            ))}
-          </div>
-          {canAddBot && (
-            <div className="flex justify-center mb-4">
-              <button onClick={() => socket.emit('add-bot')} className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95"
-                style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.35)', color: '#a78bfa' }}>+ 봇 추가</button>
-            </div>
-          )}
-          {canStart ? (
-            <div className="text-center">
-              <div className="flex gap-4 justify-center mb-4">
-                {([
-                  { label: '스몰 블라인드', val: smallBlind, setter: (v: number) => { setSmallBlind(v); setBigBlind(v * 2); } },
-                  { label: '빅 블라인드', val: bigBlind, setter: (v: number) => setBigBlind(v) },
-                ] as { label: string; val: number; setter: (v: number) => void }[]).map(({ label, val, setter }) => (
-                  <div key={label} className="text-center">
-                    <label className="text-xs text-gray-500 block mb-1 tracking-wide">{label}</label>
-                    <input type="number" className="w-28 px-3 py-2 rounded-xl text-center text-sm font-bold focus:outline-none"
-                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(251,191,36,0.25)', color: '#fbbf24' }}
-                      value={val} onChange={e => setter(Math.max(1, Number(e.target.value)))} />
-                  </div>
-                ))}
-              </div>
-              <button className="px-10 py-3 rounded-xl font-bold text-sm transition-all active:scale-95"
-                style={{ background: 'linear-gradient(135deg, #166534, #14532d)', border: '1px solid rgba(74,222,128,0.3)', color: '#86efac', boxShadow: '0 4px 20px rgba(22,101,52,0.4)' }}
-                onClick={() => socket.emit('start-game', { smallBlind, bigBlind })}>게임 시작</button>
-            </div>
-          ) : (
-            <p className="text-gray-600 text-sm text-center">
-              {isHost ? '다른 플레이어를 기다리는 중...' : '방장이 게임을 시작하면 시작됩니다'}
-            </p>
-          )}
-        </div>
-      )}
-
-      {myPlayer && !['waiting', 'showdown'].includes(gameState.phase) && (
-        <BettingControls gameState={gameState} playerId={playerId} />
-      )}
+      {/* ── Bottom bar — my player + betting controls ── */}
+      <div className="flex-shrink-0" style={{ background: 'rgba(4,5,10,0.96)', borderTop: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(10px)' }}>
+        {myPlayer && (
+          <PlayerSeat
+            player={myPlayer}
+            isMe
+            phase={gameState.phase}
+            handStrength={gameState.myHandStrength}
+            actionDeadline={myPlayer.isCurrentActor ? gameState.actionDeadline : null}
+          />
+        )}
+        {myPlayer && !['waiting', 'showdown'].includes(gameState.phase) && (
+          <BettingControls gameState={gameState} playerId={playerId} />
+        )}
+      </div>
     </div>
   );
 }
