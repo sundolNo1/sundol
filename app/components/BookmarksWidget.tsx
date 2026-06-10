@@ -11,13 +11,11 @@ interface Bookmark {
 }
 
 const DEFAULT_BOOKMARKS: Bookmark[] = [
-  { id: "1", title: "Gmail", url: "https://mail.google.com", emoji: "📧" },
-  { id: "2", title: "GitHub", url: "https://github.com", emoji: "🐙" },
-  { id: "3", title: "YouTube", url: "https://youtube.com", emoji: "▶️" },
-  { id: "4", title: "Notion", url: "https://notion.so", emoji: "📝" },
-  { id: "5", title: "네이버", url: "https://naver.com", emoji: "🟢" },
-  { id: "6", title: "카카오", url: "https://kakao.com", emoji: "💛" },
-  { id: "7", title: "네이버웹툰", url: "https://comic.naver.com", emoji: "🎨" },
+  { id: "1", title: "네이버", url: "https://naver.com", emoji: "🟢" },
+  { id: "2", title: "구글", url: "https://google.com", emoji: "🔍" },
+  { id: "3", title: "유튜브", url: "https://youtube.com", emoji: "▶️" },
+  { id: "4", title: "카카오", url: "https://kakao.com", emoji: "💛" },
+  { id: "5", title: "네이버웹툰", url: "https://comic.naver.com", emoji: "🎨" },
 ];
 
 const EMOJIS = ["🌐", "📧", "🐙", "▶️", "📝", "🟢", "💛", "🔵", "🔴", "⭐", "🏠", "🎵", "📚", "💼", "🛒"];
