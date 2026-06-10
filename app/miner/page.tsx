@@ -220,6 +220,7 @@ export default function MinerPage() {
 
     // ── Game loop ─────────────────────────────────────────────
     let uiTimer=0;
+    let prevX=false; // edge-trigger for X key
     function loop() {
       const g2=gs.current;
       const K=keys.current, M=mouse.current, MK=mkeys.current;
@@ -294,14 +295,24 @@ export default function MinerPage() {
         } else g2.mt=null;
       } else if (!M.l&&!kMine) g2.mt=null;
 
-      // Place (right click / mobile place button, blocked until started)
-      if (startedRef.current&&placeQ.current&&inR&&g2.sel&&(g2.inv[g2.sel]??0)>0&&BDEFS[g2.sel]?.place) {
-        const cur=getAt(g2.tiles,mtx,mty);
-        if (cur===AIR) {
+      // Place (X key edge-triggered: in front of player / right click: under mouse)
+      const xDown=K.has("c");
+      const kPlace=startedRef.current&&xDown&&!prevX;
+      prevX=xDown;
+      if (startedRef.current&&(placeQ.current||kPlace)&&g2.sel&&(g2.inv[g2.sel]??0)>0&&BDEFS[g2.sel]?.place) {
+        let ptx=mtx, pty=mty;
+        if (kPlace) {
+          // Place 1 tile in front of player
+          const dir=g2.fr?1:-1;
+          ptx=Math.floor((g2.px+PW/2)/T)+dir;
+          pty=Math.floor((g2.py+PH*0.6)/T);
+        }
+        const cur=getAt(g2.tiles,ptx,pty);
+        if (cur===AIR&&ptx>=0&&ptx<WW&&pty>=0&&pty<WH) {
           const px1=Math.floor(g2.px/T), px2=Math.floor((g2.px+PW-1)/T);
           const py1=Math.floor(g2.py/T), py2=Math.floor((g2.py+PH-1)/T);
-          if (!(mtx>=px1&&mtx<=px2&&mty>=py1&&mty<=py2)) {
-            setAt(g2.tiles,mtx,mty,g2.sel);
+          if (!(ptx>=px1&&ptx<=px2&&pty>=py1&&pty<=py2)) {
+            setAt(g2.tiles,ptx,pty,g2.sel);
             g2.inv[g2.sel]!--;
           }
         }
@@ -411,7 +422,7 @@ export default function MinerPage() {
         <div className="w-px h-3 bg-white/10"/>
         <span className="text-white/50 text-xs">⛏️ 마이너</span>
         {ui.hover && <><div className="w-px h-3 bg-white/10"/><span className="text-amber-300/60 text-xs">{ui.hover}</span></>}
-        <span className="ml-auto text-white/20 text-[10px] hidden sm:block">{started ? "A/D 이동 · 스페이스 점프 · Z/좌클릭 채굴 · 우클릭 설치" : ""}</span>
+        <span className="ml-auto text-white/20 text-[10px] hidden sm:block">{started ? "←/→ 이동 · 스페이스 점프 · Z 채굴 · C 설치" : ""}</span>
       </div>
 
       {/* Canvas */}
@@ -432,19 +443,19 @@ export default function MinerPage() {
               <div className="hidden sm:block mb-6 space-y-2 text-left">
                 <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
                   <span className="text-white/40 text-xs">이동</span>
-                  <span className="text-amber-200/80 text-xs font-mono">A / D</span>
+                  <span className="text-amber-200/80 text-xs font-mono">← / →</span>
                 </div>
                 <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
                   <span className="text-white/40 text-xs">점프</span>
-                  <span className="text-amber-200/80 text-xs font-mono">스페이스</span>
+                  <span className="text-amber-200/80 text-xs font-mono">스페이스 / ↑</span>
                 </div>
                 <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
                   <span className="text-white/40 text-xs">채굴</span>
-                  <span className="text-amber-200/80 text-xs font-mono">Z 키 / 좌클릭 (꾹)</span>
+                  <span className="text-amber-200/80 text-xs font-mono">Z (꾹) / 좌클릭</span>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
                   <span className="text-white/40 text-xs">블록 설치</span>
-                  <span className="text-amber-200/80 text-xs font-mono">우클릭</span>
+                  <span className="text-amber-200/80 text-xs font-mono">C / 우클릭</span>
                 </div>
               </div>
 
