@@ -16,6 +16,7 @@ const DEFAULT_BOOKMARKS: Bookmark[] = [
   { id: "3", title: "유튜브", url: "https://youtube.com", emoji: "▶️" },
   { id: "4", title: "카카오", url: "https://kakao.com", emoji: "💛" },
   { id: "5", title: "네이버웹툰", url: "https://comic.naver.com", emoji: "🎨" },
+  { id: "6", title: "누누티비", url: "https://nooo10.tv/all/program_list.php", emoji: "📺" },
 ];
 
 const EMOJIS = ["🌐", "📧", "🐙", "▶️", "📝", "🟢", "💛", "🔵", "🔴", "⭐", "🏠", "🎵", "📚", "💼", "🛒"];
