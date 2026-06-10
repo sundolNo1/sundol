@@ -213,7 +213,6 @@ export default function NewsWidget() {
         .flatMap((r) => r.value);
 
       const all = [...defaultItems.filter((n) => !disabledNow.includes(n.source)), ...customItems]
-        .filter((n) => n.image)
         .sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
 
       setNews(all);
@@ -280,14 +279,16 @@ export default function NewsWidget() {
               <a key={i} href={item.link} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-white/[0.05] transition-colors group min-h-[52px]">
                 <div className="flex-shrink-0 w-14 h-10 sm:w-16 sm:h-11 rounded-lg overflow-hidden bg-white/[0.05] flex items-center justify-center">
-                  <img src={item.image} alt="" loading="lazy" decoding="async"
-                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                    onError={(e) => {
-                      const el = e.currentTarget;
-                      el.style.display = "none";
-                      (el.nextSibling as HTMLElement).style.display = "flex";
-                    }} />
-                  <span className="hidden items-center justify-center w-full h-full text-lg">
+                  {item.image ? (
+                    <img src={item.image} alt="" loading="lazy" decoding="async"
+                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                      onError={(e) => {
+                        const el = e.currentTarget;
+                        el.style.display = "none";
+                        (el.nextSibling as HTMLElement).style.display = "flex";
+                      }} />
+                  ) : null}
+                  <span className={`${item.image ? "hidden" : "flex"} items-center justify-center w-full h-full text-lg`}>
                     {CATEGORY_ICONS[item.category] ?? "📰"}
                   </span>
                 </div>

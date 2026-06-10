@@ -12,7 +12,8 @@ interface CoinItem {
 }
 
 function fmtKRW(price: number) {
-  if (price >= 1_000_000) return (price / 1_000_000).toFixed(2) + "M";
+  if (price >= 1_0000_0000) return (price / 1_0000_0000).toFixed(2) + "억";
+  if (price >= 1_0000) return Math.floor(price / 1_0000).toLocaleString("ko-KR") + "만";
   if (price >= 1_000) return price.toLocaleString("ko-KR", { maximumFractionDigits: 0 });
   return price.toLocaleString("ko-KR", { maximumFractionDigits: 2 });
 }

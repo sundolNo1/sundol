@@ -134,6 +134,12 @@ function SearchModal({ onClose }: { onClose: () => void }) {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const match = (query ? filtered : SUPPORTED)[0];
+                  if (match) search(match.code);
+                }
+              }}
               placeholder="통화 코드 또는 이름 (예: USD, 달러)"
               autoFocus
               className="w-full bg-white/[0.05] text-[#f0ead6] text-sm rounded-xl pl-8 pr-3 py-2.5 outline-none focus:ring-1 focus:ring-amber-400/40 placeholder-white/20 border border-white/[0.06]"
