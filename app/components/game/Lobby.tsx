@@ -93,7 +93,7 @@ export default function Lobby({ error, onClearError }: { error: string | null; o
                 onClick={handleJoin}>입장하기</button>
             </div>
           )}
-          <p className="text-center text-gray-600 text-xs mt-5 tracking-wide">시작 칩 1,000,000 · 최대 6인</p>
+          <p className="text-center text-gray-600 text-xs mt-5 tracking-wide">시작 칩 1,000,000 · 최대 5인</p>
         </div>
         <div style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(255,215,0,0.2), transparent)' }} />
       </div>

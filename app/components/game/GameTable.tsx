@@ -15,41 +15,17 @@ const PHASE_COLORS: Record<string, string> = {
   waiting: '#6b7280', 'pre-flop': '#60a5fa', flop: '#34d399', turn: '#f59e0b', river: '#f87171', showdown: '#fbbf24',
 };
 
-// Absolute positions for opponent seats around the table.
-// Index 0 = first opponent; configs keyed by total opponent count.
-// zIndex: 2 so player avatars/cards appear above the table felt.
-const SEAT_CONFIGS: Array<Array<{ top: string; left?: string; right?: string; transform: string; zIndex: number }>> = [
-  // 0 opponents (unused but safe)
-  [],
-  // 1 opponent
-  [{ top: '2%', left: '50%', transform: 'translateX(-50%)', zIndex: 2 }],
-  // 2 opponents
-  [
-    { top: '2%', left: '22%', transform: 'translateX(-50%)', zIndex: 2 },
-    { top: '2%', left: '78%', transform: 'translateX(-50%)', zIndex: 2 },
-  ],
-  // 3 opponents
-  [
-    { top: '2%', left: '14%', transform: 'translateX(-50%)', zIndex: 2 },
-    { top: '2%', left: '50%', transform: 'translateX(-50%)', zIndex: 2 },
-    { top: '2%', left: '86%', transform: 'translateX(-50%)', zIndex: 2 },
-  ],
-  // 4 opponents
-  [
-    { top: '2%', left: '22%', transform: 'translateX(-50%)', zIndex: 2 },
-    { top: '2%', left: '78%', transform: 'translateX(-50%)', zIndex: 2 },
-    { top: '44%', left: '1%', transform: 'translateY(-50%)', zIndex: 2 },
-    { top: '44%', right: '1%', transform: 'translateY(-50%)', zIndex: 2 },
-  ],
-  // 5 opponents
-  [
-    { top: '2%', left: '14%', transform: 'translateX(-50%)', zIndex: 2 },
-    { top: '2%', left: '50%', transform: 'translateX(-50%)', zIndex: 2 },
-    { top: '2%', left: '86%', transform: 'translateX(-50%)', zIndex: 2 },
-    { top: '44%', left: '1%', transform: 'translateY(-50%)', zIndex: 2 },
-    { top: '44%', right: '1%', transform: 'translateY(-50%)', zIndex: 2 },
-  ],
+// 5인 테이블 고정 좌석 (나=하단 중앙, 상대 최대 4명)
+// 중앙(50%) 없음 — TL → TR → L → R 순서로 채움
+type SeatPos = { top: string; left?: string; right?: string; transform: string; zIndex: number };
+const ALL_SEATS: SeatPos[] = [
+  { top: '3%', left: '22%',  transform: 'translateX(-50%)', zIndex: 2 }, // 0: 상단 좌
+  { top: '3%', left: '78%',  transform: 'translateX(-50%)', zIndex: 2 }, // 1: 상단 우
+  { top: '44%', left: '1%',  transform: 'translateY(-50%)', zIndex: 2 }, // 2: 왼쪽
+  { top: '44%', right: '1%', transform: 'translateY(-50%)', zIndex: 2 }, // 3: 오른쪽
 ];
+// 인원수별 사용할 슬롯 인덱스
+const SEAT_ORDER = [[], [0], [0, 1], [0, 1, 2], [0, 1, 2, 3]];
 
 export default function GameTable({ gameState, playerId, roomId }: { gameState: any; playerId: string; roomId: string }) {
   const [copied, setCopied] = useState(false);
@@ -83,9 +59,9 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
   const others = gameState.players.filter((p: any) => p.id !== playerId);
   const isHost = gameState.hostId === playerId;
   const canStart = isHost && gameState.phase === 'waiting' && gameState.players.length >= 2;
-  const canAddBot = isHost && gameState.phase === 'waiting' && gameState.players.length < 6;
+  const canAddBot = isHost && gameState.phase === 'waiting' && gameState.players.length < 5;
   const phaseColor = PHASE_COLORS[gameState.phase] || '#9ca3af';
-  const seatConfig = SEAT_CONFIGS[Math.min(others.length, 5)] ?? SEAT_CONFIGS[0];
+  const slotIndices = SEAT_ORDER[Math.min(others.length, 4)];
 
   const fmtPot = (v: number) =>
     v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v.toLocaleString();
@@ -124,7 +100,7 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
           {/* Opponent seats — absolute around the table */}
           {others.map((player: any, idx: number) => (
             <div key={player.id} className="absolute"
-              style={seatConfig[idx] ?? { top: '2%', left: '50%', transform: 'translateX(-50%)', zIndex: 2 }}>
+              style={ALL_SEATS[slotIndices[idx]] ?? ALL_SEATS[0]}>
               <PlayerSeat
                 player={player}
                 isMe={false}
