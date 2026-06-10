@@ -303,10 +303,11 @@ export default function MinerPage() {
       if (startedRef.current&&(placeQ.current||kPlace)&&g2.sel&&(g2.inv[g2.sel]??0)>0&&BDEFS[g2.sel]?.place) {
         let ptx=mtx, pty=mty;
         if (kPlace) {
-          // Place 1 tile in front of player
-          const dir=g2.fr?1:-1;
-          ptx=Math.floor((g2.px+PW/2)/T)+dir;
-          pty=Math.floor((g2.py+PH*0.6)/T);
+          // Place just outside player boundary (right: beyond right edge, left: beyond left edge)
+          ptx = g2.fr
+            ? Math.floor((g2.px+PW-1)/T)+1
+            : Math.floor(g2.px/T)-1;
+          pty = Math.floor((g2.py+PH*0.6)/T);
         }
         const cur=getAt(g2.tiles,ptx,pty);
         if (cur===AIR&&ptx>=0&&ptx<WW&&pty>=0&&pty<WH) {
