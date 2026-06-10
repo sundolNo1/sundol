@@ -95,9 +95,9 @@ export default function PlayerSeat({ player, isMe, phase, actionDeadline, handSt
   if (isMe) {
     return (
       <div className="flex items-center gap-3 px-4 py-2">
-        {/* My hole cards */}
+        {/* My hole cards — hidden during waiting phase */}
         <div className="flex gap-1.5 flex-shrink-0">
-          {player.hand?.length > 0 ? (
+          {player.hand?.length > 0 && phase !== 'waiting' ? (
             player.hand.map((card: any, i: number) => <Card key={i} card={card} hidden={false} />)
           ) : (
             <>
@@ -198,14 +198,6 @@ export default function PlayerSeat({ player, isMe, phase, actionDeadline, handSt
             <div className="dealer-btn absolute" style={{ width: 17, height: 17, fontSize: 7, top: -2, right: -2 }}>D</div>
           )}
 
-          {/* All-in badge */}
-          {player.allIn && !player.folded && (
-            <div className="absolute px-1 rounded-full font-bold text-white"
-              style={{ fontSize: 7, background: '#dc2626', border: '1px solid rgba(239,68,68,0.5)', whiteSpace: 'nowrap', bottom: -8, left: '50%', transform: 'translateX(-50%)' }}>
-              ALL IN
-            </div>
-          )}
-
           {/* Folded overlay */}
           {player.folded && (
             <div className="absolute inset-0 rounded-full flex items-center justify-center"
@@ -226,14 +218,20 @@ export default function PlayerSeat({ player, isMe, phase, actionDeadline, handSt
           <span className="text-white font-semibold truncate" style={{ fontSize: 11, maxWidth: 68 }}>{player.name}</span>
         </div>
         <div className="flex items-center justify-center gap-1">
-          <span style={{ color: '#fbbf24', fontSize: 9 }}>⬤</span>
-          <span style={{ color: '#fcd34d', fontSize: 11, fontWeight: 600 }}>
-            {player.allIn ? 'ALL IN' : player.chips >= 1000000 ? `${(player.chips / 1000000).toFixed(1)}M` : player.chips >= 1000 ? `${(player.chips / 1000).toFixed(0)}K` : player.chips.toLocaleString()}
-          </span>
+          {player.allIn ? (
+            <span style={{ fontSize: 10, fontWeight: 800, color: '#f87171', letterSpacing: '0.04em' }}>ALL IN</span>
+          ) : (
+            <>
+              <span style={{ color: '#fbbf24', fontSize: 9 }}>⬤</span>
+              <span style={{ color: '#fcd34d', fontSize: 11, fontWeight: 600 }}>
+                {player.chips >= 1000000 ? `${(player.chips / 1000000).toFixed(1)}M` : player.chips >= 1000 ? `${(player.chips / 1000).toFixed(0)}K` : player.chips.toLocaleString()}
+              </span>
+            </>
+          )}
         </div>
         {player.totalBet > 0 && !['waiting', 'showdown'].includes(phase) && (
-          <div className="mt-0.5" style={{ fontSize: 9, color: '#86efac', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 8, padding: '1px 4px' }}>
-            {player.totalBet >= 1000000 ? `${(player.totalBet / 1000000).toFixed(1)}M` : player.totalBet >= 1000 ? `${(player.totalBet / 1000).toFixed(0)}K` : player.totalBet.toLocaleString()}
+          <div className="mt-0.5" style={{ fontSize: 9, color: '#86efac', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 8, padding: '1px 6px' }}>
+            베팅 {player.totalBet >= 1000000 ? `${(player.totalBet / 1000000).toFixed(1)}M` : player.totalBet >= 1000 ? `${(player.totalBet / 1000).toFixed(0)}K` : player.totalBet.toLocaleString()}
           </div>
         )}
       </div>

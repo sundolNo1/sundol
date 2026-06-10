@@ -17,33 +17,39 @@ const PHASE_COLORS: Record<string, string> = {
 
 // Absolute positions for opponent seats around the table.
 // Index 0 = first opponent; configs keyed by total opponent count.
-const SEAT_CONFIGS: Record<number, React.CSSProperties[]> = {
-  1: [
-    { top: '3%', left: '50%', transform: 'translateX(-50%)' },
+// zIndex: 2 so player avatars/cards appear above the table felt.
+const SEAT_CONFIGS: Array<Array<{ top: string; left?: string; right?: string; transform: string; zIndex: number }>> = [
+  // 0 opponents (unused but safe)
+  [],
+  // 1 opponent
+  [{ top: '2%', left: '50%', transform: 'translateX(-50%)', zIndex: 2 }],
+  // 2 opponents
+  [
+    { top: '2%', left: '22%', transform: 'translateX(-50%)', zIndex: 2 },
+    { top: '2%', left: '78%', transform: 'translateX(-50%)', zIndex: 2 },
   ],
-  2: [
-    { top: '3%', left: '22%', transform: 'translateX(-50%)' },
-    { top: '3%', left: '78%', transform: 'translateX(-50%)' },
+  // 3 opponents
+  [
+    { top: '2%', left: '14%', transform: 'translateX(-50%)', zIndex: 2 },
+    { top: '2%', left: '50%', transform: 'translateX(-50%)', zIndex: 2 },
+    { top: '2%', left: '86%', transform: 'translateX(-50%)', zIndex: 2 },
   ],
-  3: [
-    { top: '3%', left: '14%', transform: 'translateX(-50%)' },
-    { top: '3%', left: '50%', transform: 'translateX(-50%)' },
-    { top: '3%', left: '86%', transform: 'translateX(-50%)' },
+  // 4 opponents
+  [
+    { top: '2%', left: '22%', transform: 'translateX(-50%)', zIndex: 2 },
+    { top: '2%', left: '78%', transform: 'translateX(-50%)', zIndex: 2 },
+    { top: '44%', left: '1%', transform: 'translateY(-50%)', zIndex: 2 },
+    { top: '44%', right: '1%', transform: 'translateY(-50%)', zIndex: 2 },
   ],
-  4: [
-    { top: '3%', left: '22%', transform: 'translateX(-50%)' },
-    { top: '3%', left: '78%', transform: 'translateX(-50%)' },
-    { top: '46%', left: '1%', transform: 'translateY(-50%)' },
-    { top: '46%', left: '99%', transform: 'translate(-100%, -50%)' },
+  // 5 opponents
+  [
+    { top: '2%', left: '14%', transform: 'translateX(-50%)', zIndex: 2 },
+    { top: '2%', left: '50%', transform: 'translateX(-50%)', zIndex: 2 },
+    { top: '2%', left: '86%', transform: 'translateX(-50%)', zIndex: 2 },
+    { top: '44%', left: '1%', transform: 'translateY(-50%)', zIndex: 2 },
+    { top: '44%', right: '1%', transform: 'translateY(-50%)', zIndex: 2 },
   ],
-  5: [
-    { top: '3%', left: '14%', transform: 'translateX(-50%)' },
-    { top: '3%', left: '50%', transform: 'translateX(-50%)' },
-    { top: '3%', left: '86%', transform: 'translateX(-50%)' },
-    { top: '46%', left: '1%', transform: 'translateY(-50%)' },
-    { top: '46%', left: '99%', transform: 'translate(-100%, -50%)' },
-  ],
-};
+];
 
 export default function GameTable({ gameState, playerId, roomId }: { gameState: any; playerId: string; roomId: string }) {
   const [copied, setCopied] = useState(false);
@@ -79,7 +85,7 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
   const canStart = isHost && gameState.phase === 'waiting' && gameState.players.length >= 2;
   const canAddBot = isHost && gameState.phase === 'waiting' && gameState.players.length < 6;
   const phaseColor = PHASE_COLORS[gameState.phase] || '#9ca3af';
-  const seatConfig = SEAT_CONFIGS[Math.min(others.length, 5)] ?? [];
+  const seatConfig = SEAT_CONFIGS[Math.min(others.length, 5)] ?? SEAT_CONFIGS[0];
 
   const fmtPot = (v: number) =>
     v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v.toLocaleString();
@@ -109,47 +115,53 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
         </button>
       </div>
 
-      {/* ── Game area ── */}
-      <div className="flex-1 relative overflow-hidden" style={{ minHeight: 340 }}>
+      {/* ── Game area (flex col: table zone + panels) ── */}
+      <div className="flex-1 flex flex-col overflow-hidden">
 
-        {/* Opponent seats — absolute around the table */}
-        {others.map((player: any, idx: number) => (
-          <div key={player.id} className="absolute" style={seatConfig[idx] ?? { top: '3%', left: '50%', transform: 'translateX(-50%)' }}>
-            <PlayerSeat
-              player={player}
-              isMe={false}
-              phase={gameState.phase}
-              actionDeadline={player.isCurrentActor ? gameState.actionDeadline : null}
-            />
-          </div>
-        ))}
+        {/* Table zone — relative, takes remaining space */}
+        <div className="flex-1 relative overflow-hidden" style={{ minHeight: 260 }}>
 
-        {/* Poker table — centered */}
-        <div className="poker-table absolute"
-          style={{
-            left: '50%', top: '46%',
-            transform: 'translate(-50%, -50%)',
-            width: 'clamp(280px, 58%, 500px)',
-            aspectRatio: '2 / 1',
-          }}>
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
-            <div className="flex gap-1.5">
-              {[0, 1, 2, 3, 4].map(i => (
-                <Card key={i} card={gameState.communityCards[i] || null} hidden={!gameState.communityCards[i]} large />
-              ))}
+          {/* Opponent seats — absolute around the table */}
+          {others.map((player: any, idx: number) => (
+            <div key={player.id} className="absolute"
+              style={seatConfig[idx] ?? { top: '2%', left: '50%', transform: 'translateX(-50%)', zIndex: 2 }}>
+              <PlayerSeat
+                player={player}
+                isMe={false}
+                phase={gameState.phase}
+                actionDeadline={player.isCurrentActor ? gameState.actionDeadline : null}
+              />
             </div>
-            {gameState.pot > 0 && (
-              <div className="px-4 py-1.5 rounded-full font-bold"
-                style={{ background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24', boxShadow: '0 0 20px rgba(251,191,36,0.2)', fontSize: 13 }}>
-                팟 {fmtPot(gameState.pot)}
+          ))}
+
+          {/* Poker table — centered */}
+          <div className="poker-table absolute"
+            style={{
+              left: '50%', top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 'clamp(260px, 56%, 480px)',
+              aspectRatio: '2 / 1',
+              zIndex: 1,
+            }}>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
+              <div className="flex gap-1.5">
+                {[0, 1, 2, 3, 4].map(i => (
+                  <Card key={i} card={gameState.communityCards[i] || null} hidden={!gameState.communityCards[i]} large />
+                ))}
               </div>
-            )}
+              {gameState.pot > 0 && (
+                <div className="px-4 py-1.5 rounded-full font-bold"
+                  style={{ background: 'rgba(0,0,0,0.72)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24', boxShadow: '0 0 20px rgba(251,191,36,0.2)', fontSize: 13 }}>
+                  팟 {fmtPot(gameState.pot)}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* ── Showdown ── */}
+        {/* ── Showdown panel — natural flow, never overlaps table ── */}
         {gameState.phase === 'showdown' && gameState.winners.length > 0 && (
-          <div className="absolute bottom-2 left-3 right-3 rounded-2xl p-4 text-center z-10"
+          <div className="mx-3 mb-2 rounded-2xl p-4 text-center flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, rgba(30,20,5,0.97), rgba(20,15,3,0.97))', border: '1px solid rgba(251,191,36,0.4)', boxShadow: '0 0 30px rgba(251,191,36,0.2)' }}>
             <div className="text-yellow-400 font-bold text-base mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
               {gameState.winners.length === 1 ? '🏆 Winner' : '🏆 Split Pot'}
@@ -174,10 +186,10 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
           </div>
         )}
 
-        {/* ── Waiting room ── */}
+        {/* ── Waiting room panel — natural flow ── */}
         {gameState.phase === 'waiting' && (
-          <div className="absolute bottom-2 left-3 right-3 rounded-2xl p-4 z-10"
-            style={{ background: 'rgba(8,10,18,0.93)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(12px)' }}>
+          <div className="mx-3 mb-2 rounded-2xl p-4 flex-shrink-0"
+            style={{ background: 'rgba(8,10,18,0.95)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(12px)' }}>
             <p className="text-gray-500 text-xs text-center mb-2 tracking-widest uppercase">
               참가자 {gameState.players.length}명{gameState.players.length < 2 && ' · 최소 2명 필요'}
             </p>

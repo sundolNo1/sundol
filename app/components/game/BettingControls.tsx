@@ -24,9 +24,9 @@ export default function BettingControls({ gameState, playerId }: { gameState: an
 
   if (!isMyTurn || !['pre-flop', 'flop', 'turn', 'river'].includes(gameState.phase)) {
     return (
-      <div className="h-16 flex items-center justify-center">
+      <div className="h-10 flex items-center justify-center">
         {!['waiting', 'showdown'].includes(gameState.phase) && (
-          <span className="text-gray-500 text-sm italic">다른 플레이어의 차례입니다...</span>
+          <span className="text-gray-600 text-xs italic tracking-wide">대기 중...</span>
         )}
       </div>
     );
