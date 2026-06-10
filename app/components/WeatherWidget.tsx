@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Cloud, Sun, CloudRain, CloudSnow, Wind, Droplets, Thermometer, MapPin, Navigation, ChevronDown, ChevronUp } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Cloud, Sun, CloudRain, CloudSnow, Wind, Droplets, Thermometer, MapPin, Navigation, ChevronDown, ChevronUp, X } from "lucide-react";
 
 interface WeatherData {
   temp: number;
@@ -13,11 +13,25 @@ interface WeatherData {
   icon: string;
 }
 
-interface City {
-  name: string;
-  lat: number;
-  lon: number;
+interface HourlyItem {
+  dt: number;
+  temp: number;
+  description: string;
+  icon: string;
+  isDay: boolean;
+  pop: number;
+  wind: number;
 }
+
+interface DailyItem {
+  date: string;
+  tempMax: number;
+  tempMin: number;
+  icon: string;
+  pop: number;
+}
+
+interface City { name: string; lat: number; lon: number; }
 
 const CITIES: City[] = [
   { name: "현재 위치", lat: 0, lon: 0 },
@@ -35,22 +49,30 @@ const CITIES: City[] = [
   { name: "제주", lat: 33.4996, lon: 126.5312 },
 ];
 
-const WEATHER_ICONS: Record<string, React.ReactNode> = {
-  "01": <Sun className="w-10 h-10 text-amber-300" />,
-  "02": <Cloud className="w-10 h-10 text-white/50" />,
-  "03": <Cloud className="w-10 h-10 text-white/40" />,
-  "04": <Cloud className="w-10 h-10 text-white/30" />,
-  "09": <CloudRain className="w-10 h-10 text-blue-300/70" />,
-  "10": <CloudRain className="w-10 h-10 text-blue-300/70" />,
-  "13": <CloudSnow className="w-10 h-10 text-blue-100/60" />,
-  "50": <Wind className="w-10 h-10 text-white/40" />,
-};
+function WeatherIcon({ code, className }: { code: string; className?: string }) {
+  const cls = className ?? "w-7 h-7";
+  const icons: Record<string, React.ReactNode> = {
+    "01": <Sun className={`${cls} text-amber-300`} />,
+    "02": <Cloud className={`${cls} text-white/50`} />,
+    "03": <Cloud className={`${cls} text-white/40`} />,
+    "04": <Cloud className={`${cls} text-white/30`} />,
+    "09": <CloudRain className={`${cls} text-blue-300/70`} />,
+    "10": <CloudRain className={`${cls} text-blue-300/70`} />,
+    "13": <CloudSnow className={`${cls} text-blue-100/60`} />,
+    "50": <Wind className={`${cls} text-white/40`} />,
+  };
+  return <>{icons[code] ?? <Cloud className={`${cls} text-white/40`} />}</>;
+}
 
 export default function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showPicker, setShowPicker] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [forecast, setForecast] = useState<{ hourly: HourlyItem[]; daily: DailyItem[] } | null>(null);
+  const [forecastLoading, setForecastLoading] = useState(false);
+  const [currentLatLon, setCurrentLatLon] = useState({ lat: 37.5665, lon: 126.9780 });
   const [selectedCity, setSelectedCity] = useState<string>(() => {
     if (typeof window === "undefined") return "현재 위치";
     return localStorage.getItem("weatherCity") ?? "현재 위치";
@@ -59,6 +81,7 @@ export default function WeatherWidget() {
   const fetchWeather = async (lat: number, lon: number) => {
     setLoading(true);
     setError(null);
+    setCurrentLatLon({ lat, lon });
     try {
       const res = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
       if (!res.ok) throw new Error();
@@ -69,6 +92,19 @@ export default function WeatherWidget() {
       setError("날씨 정보를 불러올 수 없습니다");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchForecast = async (lat: number, lon: number) => {
+    setForecastLoading(true);
+    try {
+      const res = await fetch(`/api/forecast?lat=${lat}&lon=${lon}`);
+      const data = await res.json();
+      setForecast(data);
+    } catch {
+      setForecast(null);
+    } finally {
+      setForecastLoading(false);
     }
   };
 
@@ -98,74 +134,146 @@ export default function WeatherWidget() {
     loadByCity(city);
   };
 
+  const handleOpenModal = () => {
+    setShowModal(true);
+    fetchForecast(currentLatLon.lat, currentLatLon.lon);
+  };
+
+  const onKey = useCallback((e: KeyboardEvent) => { if (e.key === "Escape") setShowModal(false); }, []);
+  useEffect(() => {
+    if (showModal) document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [showModal, onKey]);
+
   return (
-    <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/[0.07]">
-      <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">날씨</h2>
-        <button
-          onClick={() => setShowPicker((v) => !v)}
-          className="flex items-center gap-1 text-white/30 hover:text-amber-400/80 transition-colors text-xs"
-        >
-          {selectedCity === "현재 위치"
-            ? <Navigation className="w-3.5 h-3.5" />
-            : <MapPin className="w-3.5 h-3.5" />}
-          <span>{selectedCity}</span>
-          {showPicker ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-        </button>
+    <>
+      <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/[0.07]">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">날씨</h2>
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowPicker((v) => !v); }}
+            className="flex items-center gap-1 text-white/30 hover:text-amber-400/80 transition-colors text-xs"
+          >
+            {selectedCity === "현재 위치" ? <Navigation className="w-3.5 h-3.5" /> : <MapPin className="w-3.5 h-3.5" />}
+            <span>{selectedCity}</span>
+            {showPicker ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+        </div>
+
+        {showPicker && (
+          <div className="mb-4 overflow-y-auto max-h-40 rounded-xl bg-white/[0.04] border border-white/[0.08] divide-y divide-white/[0.04]">
+            {CITIES.map((city) => (
+              <button key={city.name} onClick={() => handleSelectCity(city)}
+                className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2
+                  ${selectedCity === city.name ? "text-amber-300 bg-amber-400/10" : "text-white/50 hover:bg-white/[0.05] hover:text-white/80"}`}>
+                {city.name === "현재 위치" ? <Navigation className="w-3 h-3 shrink-0" /> : <MapPin className="w-3 h-3 shrink-0 text-white/20" />}
+                {city.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {loading && <div className="flex items-center justify-center h-20 text-white/20 text-sm">로딩 중...</div>}
+        {error && <div className="flex items-center justify-center h-20 text-white/20 text-sm text-center">{error}</div>}
+        {!loading && !error && weather && (
+          <button onClick={handleOpenModal} className="w-full text-left hover:opacity-90 transition-opacity">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="opacity-80 flex-shrink-0 [&>svg]:w-7 [&>svg]:h-7 sm:[&>svg]:w-10 sm:[&>svg]:h-10">
+                <WeatherIcon code={weather.icon} className="w-7 h-7 sm:w-10 sm:h-10" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-3xl sm:text-5xl font-thin text-[#f0ead6] tracking-wide">{weather.temp}°</div>
+                <div className="text-white/40 text-xs sm:text-sm capitalize mt-0.5 truncate">{weather.description}</div>
+                <div className="text-white/20 text-xs truncate">{weather.city}</div>
+              </div>
+              <div className="ml-auto text-white/20 text-xs flex-shrink-0">예보 →</div>
+            </div>
+            <div className="mt-3 sm:mt-5 grid grid-cols-3 gap-1 sm:gap-2 text-[10px] sm:text-xs text-white/30 border-t border-white/[0.05] pt-3 sm:pt-4">
+              <div className="flex items-center gap-1.5"><Thermometer className="w-3 h-3 text-amber-400/40" /><span>체감 {weather.feels_like}°</span></div>
+              <div className="flex items-center gap-1.5"><Droplets className="w-3 h-3 text-blue-300/40" /><span>습도 {weather.humidity}%</span></div>
+              <div className="flex items-center gap-1.5"><Wind className="w-3 h-3 text-white/30" /><span>바람 {weather.wind_speed}m/s</span></div>
+            </div>
+          </button>
+        )}
       </div>
 
-      {showPicker && (
-        <div className="mb-4 overflow-y-auto max-h-40 rounded-xl bg-white/[0.04] border border-white/[0.08] divide-y divide-white/[0.04]">
-          {CITIES.map((city) => (
-            <button
-              key={city.name}
-              onClick={() => handleSelectCity(city)}
-              className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2
-                ${selectedCity === city.name
-                  ? "text-amber-300 bg-amber-400/10"
-                  : "text-white/50 hover:bg-white/[0.05] hover:text-white/80"}`}
-            >
-              {city.name === "현재 위치"
-                ? <Navigation className="w-3 h-3 shrink-0" />
-                : <MapPin className="w-3 h-3 shrink-0 text-white/20" />}
-              {city.name}
-            </button>
-          ))}
-        </div>
-      )}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}
+          onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}>
+          <div className="w-full max-w-sm rounded-2xl overflow-hidden"
+            style={{ background: "linear-gradient(135deg, rgba(14,14,22,0.98), rgba(8,8,16,0.99))", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 24px 80px rgba(0,0,0,0.8)" }}>
+            <div style={{ height: 2, background: "linear-gradient(to right, transparent, #60a5fa, #3b82f6, #60a5fa, transparent)" }} />
 
-      {loading && (
-        <div className="flex items-center justify-center h-20 text-white/20 text-sm">로딩 중...</div>
-      )}
-      {error && (
-        <div className="flex items-center justify-center h-20 text-white/20 text-sm text-center">{error}</div>
-      )}
-      {!loading && !error && weather && (
-        <div>
-          <div className="flex items-center gap-2 sm:gap-4">
-            <div className="opacity-80 flex-shrink-0 [&>svg]:w-7 [&>svg]:h-7 sm:[&>svg]:w-10 sm:[&>svg]:h-10">{WEATHER_ICONS[weather.icon] ?? <Cloud className="w-7 h-7 sm:w-10 sm:h-10 text-white/40" />}</div>
-            <div className="min-w-0">
-              <div className="text-3xl sm:text-5xl font-thin text-[#f0ead6] tracking-wide">{weather.temp}°</div>
-              <div className="text-white/40 text-xs sm:text-sm capitalize mt-0.5 truncate">{weather.description}</div>
-              <div className="text-white/20 text-xs truncate">{weather.city}</div>
-            </div>
-          </div>
-          <div className="mt-3 sm:mt-5 grid grid-cols-3 gap-1 sm:gap-2 text-[10px] sm:text-xs text-white/30 border-t border-white/[0.05] pt-3 sm:pt-4">
-            <div className="flex items-center gap-1.5">
-              <Thermometer className="w-3 h-3 text-amber-400/40" />
-              <span>체감 {weather.feels_like}°</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Droplets className="w-3 h-3 text-blue-300/40" />
-              <span>습도 {weather.humidity}%</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Wind className="w-3 h-3 text-white/30" />
-              <span>바람 {weather.wind_speed}m/s</span>
+            <div className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <span className="text-sm font-semibold text-white/70">시간대별 예보</span>
+                  <span className="text-xs text-white/30 ml-2">{weather?.city}</span>
+                </div>
+                <button onClick={() => setShowModal(false)}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {forecastLoading ? (
+                <div className="space-y-2 py-4">
+                  {[1,2,3].map(i => <div key={i} className="animate-pulse h-10 bg-white/[0.04] rounded-xl" />)}
+                </div>
+              ) : forecast ? (
+                <>
+                  {/* 시간별 예보 */}
+                  <div className="mb-4">
+                    <p className="text-[10px] text-white/25 uppercase tracking-widest mb-2">3시간 간격 예보</p>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {forecast.hourly.map((h) => {
+                        const timeStr = new Date(h.dt * 1000).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
+                        return (
+                          <div key={h.dt} className="flex flex-col items-center gap-1 flex-shrink-0 px-2 py-2 rounded-xl min-w-[52px]"
+                            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                            <span className="text-[10px] text-white/35">{timeStr}</span>
+                            <div className="[&>svg]:w-5 [&>svg]:h-5 opacity-80">
+                              <WeatherIcon code={h.icon} className="w-5 h-5" />
+                            </div>
+                            <span className="text-sm font-semibold text-white/80">{h.temp}°</span>
+                            {h.pop > 0 && (
+                              <span className="text-[9px] text-blue-300/70">💧{h.pop}%</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 일별 예보 */}
+                  <div>
+                    <p className="text-[10px] text-white/25 uppercase tracking-widest mb-2">5일 예보</p>
+                    <div className="space-y-1">
+                      {forecast.daily.map((d) => (
+                        <div key={d.date} className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-white/[0.04] transition-colors">
+                          <span className="text-xs text-white/50 w-24">{d.date}</span>
+                          <div className="[&>svg]:w-4 [&>svg]:h-4 opacity-70">
+                            <WeatherIcon code={d.icon} className="w-4 h-4" />
+                          </div>
+                          {d.pop > 0 && <span className="text-[10px] text-blue-300/60">💧{d.pop}%</span>}
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-red-300/70">{d.tempMax}°</span>
+                            <span className="text-white/20">/</span>
+                            <span className="text-blue-300/70">{d.tempMin}°</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-white/20 text-sm text-center py-6">예보를 불러올 수 없습니다</div>
+              )}
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
