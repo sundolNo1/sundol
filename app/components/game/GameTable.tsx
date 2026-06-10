@@ -145,9 +145,12 @@ export default function GameTable({ gameState, playerId, roomId }: { gameState: 
             }}>
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
               <div className="flex gap-1.5">
-                {[0, 1, 2, 3, 4].map(i => (
-                  <Card key={i} card={gameState.communityCards[i] || null} hidden={!gameState.communityCards[i]} large />
-                ))}
+                {[0, 1, 2, 3, 4].map(i => {
+                  const card = gameState.communityCards[i];
+                  return card
+                    ? <Card key={i} card={card} hidden={false} large />
+                    : <div key={i} className="rounded-lg" style={{ width: 'clamp(44px,12vw,66px)', height: 'clamp(62px,17vw,92px)', background: 'rgba(0,0,0,0.28)', border: '1px solid rgba(255,255,255,0.07)' }} />;
+                })}
               </div>
               {gameState.pot > 0 && (
                 <div className="px-4 py-1.5 rounded-full font-bold"

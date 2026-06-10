@@ -95,8 +95,9 @@ export default function PlayerSeat({ player, isMe, phase, actionDeadline, handSt
   if (isMe) {
     return (
       <div className="flex items-center gap-3 px-4 py-2">
-        {/* My hole cards — hidden during waiting phase */}
-        <div className="flex gap-1.5 flex-shrink-0">
+        {/* My hole cards — hidden during waiting, greyed when folded */}
+        <div className="flex gap-1.5 flex-shrink-0"
+          style={{ opacity: player.folded ? 0.3 : 1, filter: player.folded ? 'grayscale(0.7)' : 'none', transition: 'opacity 0.3s, filter 0.3s' }}>
           {player.hand?.length > 0 && phase !== 'waiting' ? (
             player.hand.map((card: any, i: number) => <Card key={i} card={card} hidden={false} />)
           ) : (
