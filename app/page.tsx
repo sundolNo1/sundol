@@ -8,6 +8,7 @@ import SearchBar from "./components/SearchBar";
 import StocksWidget from "./components/StocksWidget";
 import ExchangeWidget from "./components/ExchangeWidget";
 import TodoWidget from "./components/TodoWidget";
+import CryptoWidget from "./components/CryptoWidget";
 
 export default function Home() {
   return (
@@ -83,6 +84,12 @@ export default function Home() {
           </div>
           <div className="hover:shadow-[0_0_32px_rgba(251,191,36,0.07)] hover:-translate-y-0.5 transition-all duration-300 rounded-2xl">
             <TodoWidget />
+          </div>
+        </div>
+
+        <div className="fade-up grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" style={{ animationDelay: "480ms" }}>
+          <div className="hover:shadow-[0_0_32px_rgba(251,191,36,0.07)] hover:-translate-y-0.5 transition-all duration-300 rounded-2xl">
+            <CryptoWidget />
           </div>
         </div>
       </div>
