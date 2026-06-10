@@ -6,6 +6,7 @@ import BookmarksWidget from "./components/BookmarksWidget";
 import NewsWidget from "./components/NewsWidget";
 import SearchBar from "./components/SearchBar";
 import StocksWidget from "./components/StocksWidget";
+import ExchangeWidget from "./components/ExchangeWidget";
 
 export default function Home() {
   return (
@@ -62,6 +63,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <StocksWidget />
+          <ExchangeWidget />
         </div>
       </div>
     </main>
