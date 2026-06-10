@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { X, Search } from "lucide-react";
 
 const WORLD_CITIES = [
@@ -109,6 +110,9 @@ export default function ClockWidget() {
   const [time, setTime] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
   const [tab, setTab] = useState<"calendar" | "world">("calendar");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -142,8 +146,8 @@ export default function ClockWidget() {
         <div className="mt-2 sm:mt-4 text-white/30 text-[10px] sm:text-xs tracking-widest uppercase">{dateStr}</div>
       </button>
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      {showModal && mounted && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
           style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
           onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}>
           <div className="w-full max-w-sm rounded-2xl overflow-hidden"
@@ -172,7 +176,8 @@ export default function ClockWidget() {
               {tab === "calendar" ? <MiniCalendar today={time} /> : <WorldClock now={time} />}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

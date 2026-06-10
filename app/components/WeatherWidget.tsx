@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Cloud, Sun, CloudRain, CloudSnow, Wind, Droplets, Thermometer, MapPin, Navigation, ChevronDown, ChevronUp, X } from "lucide-react";
 
 interface WeatherData {
@@ -70,6 +71,7 @@ export default function WeatherWidget() {
   const [loading, setLoading] = useState(true);
   const [showPicker, setShowPicker] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [forecast, setForecast] = useState<{ hourly: HourlyItem[]; daily: DailyItem[] } | null>(null);
   const [forecastLoading, setForecastLoading] = useState(false);
   const [currentLatLon, setCurrentLatLon] = useState({ lat: 37.5665, lon: 126.9780 });
@@ -120,6 +122,8 @@ export default function WeatherWidget() {
       fetchWeather(city.lat, city.lon);
     }
   };
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     const city = CITIES.find((c) => c.name === selectedCity) ?? CITIES[0];
@@ -197,8 +201,8 @@ export default function WeatherWidget() {
         )}
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      {showModal && mounted && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
           style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
           onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}>
           <div className="w-full max-w-sm rounded-2xl overflow-hidden"
@@ -272,7 +276,8 @@ export default function WeatherWidget() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
