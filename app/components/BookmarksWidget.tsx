@@ -172,7 +172,8 @@ export default function BookmarksWidget() {
   }, []);
 
   return (
-    <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/[0.07]">
+    <div className="relative overflow-hidden bg-white/[0.05] backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-violet-400/20 hover:shadow-[0_0_40px_rgba(167,139,250,0.10)] transition-all">
+      <div style={{ height: 2, background: "linear-gradient(to right, transparent, rgba(167,139,250,0.7), rgba(139,92,246,0.5), transparent)" }} className="absolute top-0 inset-x-0 pointer-events-none" />
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">즐겨찾기</h2>
         <button

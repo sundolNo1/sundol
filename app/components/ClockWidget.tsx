@@ -135,8 +135,9 @@ export default function ClockWidget() {
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="w-full bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 sm:p-6 md:p-8 text-center border border-white/[0.07] hover:border-amber-400/20 hover:bg-white/[0.05] transition-all"
+        className="w-full relative overflow-hidden bg-white/[0.05] backdrop-blur-2xl rounded-2xl p-4 sm:p-6 md:p-8 text-center border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-amber-400/30 hover:bg-white/[0.07] hover:shadow-[0_0_40px_rgba(251,191,36,0.12)] transition-all"
       >
+        <div style={{ height: 2, background: "linear-gradient(to right, transparent, rgba(251,191,36,0.7), rgba(245,158,11,0.5), transparent)" }} className="absolute top-0 inset-x-0 pointer-events-none" />
         <div className="flex items-baseline justify-center">
           <span className="text-3xl sm:text-5xl md:text-7xl font-thin tracking-[0.12em] text-[#f0ead6]">{hours}</span>
           <span className="text-2xl sm:text-4xl md:text-5xl font-thin text-amber-400/50 animate-pulse mx-1 sm:mx-1.5 mb-1">:</span>

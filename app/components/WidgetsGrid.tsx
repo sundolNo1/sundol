@@ -34,7 +34,7 @@ const DEFAULT_VIS: Record<WidgetKey, boolean> = {
 const VIS_KEY = "widget_visibility_v1";
 const VIEW_KEY = "portal_view_mode";
 
-const CELL = "hover:shadow-[0_0_32px_rgba(251,191,36,0.07)] hover:-translate-y-0.5 transition-all duration-300 rounded-2xl";
+const CELL = "hover:-translate-y-0.5 transition-all duration-300 rounded-2xl";
 
 function getColClass(
   cols: "always2" | "sm" | "lg",

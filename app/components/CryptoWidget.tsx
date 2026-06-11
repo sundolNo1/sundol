@@ -99,7 +99,8 @@ export default function CryptoWidget() {
     : null;
 
   return (
-    <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/[0.07]">
+    <div className="relative overflow-hidden bg-white/[0.05] backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-cyan-400/20 hover:shadow-[0_0_40px_rgba(34,211,238,0.10)] transition-all">
+      <div style={{ height: 2, background: "linear-gradient(to right, transparent, rgba(34,211,238,0.7), rgba(6,182,212,0.5), transparent)" }} className="absolute top-0 inset-x-0 pointer-events-none" />
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">암호화폐</h2>
         <button onClick={fetchCoins} className="text-white/25 hover:text-amber-400/80 transition-colors">
