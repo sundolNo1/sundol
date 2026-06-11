@@ -9,10 +9,9 @@ import BookmarksWidget from "./BookmarksWidget";
 import NewsWidget from "./NewsWidget";
 import StocksWidget from "./StocksWidget";
 import ExchangeWidget from "./ExchangeWidget";
-import TodoWidget from "./TodoWidget";
 import CryptoWidget from "./CryptoWidget";
 
-type WidgetKey = "clock" | "weather" | "bookmarks" | "news" | "stocks" | "todo" | "crypto" | "exchange";
+type WidgetKey = "clock" | "weather" | "bookmarks" | "news" | "stocks" | "crypto" | "exchange";
 type ViewMode = "auto" | "pc" | "mobile";
 
 const WIDGET_META: { key: WidgetKey; label: string; icon: string }[] = [
@@ -21,17 +20,16 @@ const WIDGET_META: { key: WidgetKey; label: string; icon: string }[] = [
   { key: "bookmarks",label: "즐겨찾기",  icon: "⭐" },
   { key: "news",     label: "뉴스",      icon: "📰" },
   { key: "stocks",   label: "증시",      icon: "📈" },
-  { key: "todo",     label: "할 일",     icon: "✅" },
   { key: "crypto",   label: "암호화폐",  icon: "🪙" },
   { key: "exchange", label: "환율",      icon: "💱" },
 ];
 
 const DEFAULT_VIS: Record<WidgetKey, boolean> = {
   clock: true, weather: true, bookmarks: true, news: true,
-  stocks: true, todo: true, crypto: true, exchange: true,
+  stocks: true, crypto: true, exchange: true,
 };
 
-const VIS_KEY = "widget_visibility_v1";
+const VIS_KEY = "widget_visibility_v2";
 const VIEW_KEY = "portal_view_mode";
 
 const CELL = "hover:-translate-y-0.5 transition-all duration-300 rounded-2xl";
@@ -124,10 +122,11 @@ export default function WidgetsGrid() {
           left={vis.bookmarks ? <BookmarksWidget /> : null}
           right={vis.news     ? <NewsWidget />      : null}
         />
-        <WidgetRow delay="400ms" cols="sm" viewMode={viewMode}
-          left={vis.stocks ? <StocksWidget /> : null}
-          right={vis.todo  ? <TodoWidget />   : null}
-        />
+        {vis.stocks && (
+          <div className={`fade-up ${CELL}`} style={{ animationDelay: "400ms" }}>
+            <StocksWidget />
+          </div>
+        )}
         <WidgetRow delay="480ms" cols="sm" viewMode={viewMode}
           left={vis.crypto   ? <CryptoWidget />   : null}
           right={vis.exchange ? <ExchangeWidget /> : null}

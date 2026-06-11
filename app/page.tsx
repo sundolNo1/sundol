@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import SearchBar from "./components/SearchBar";
 import WidgetsGrid from "./components/WidgetsGrid";
+import TodoWidget from "./components/TodoWidget";
 
 export default function Home() {
   return (
@@ -48,6 +49,11 @@ export default function Home() {
             </div>
             <div className="ml-auto text-white/20 group-hover:text-amber-400/60 transition-colors text-lg flex-shrink-0">→</div>
           </Link>
+        </div>
+
+        {/* 할 일 */}
+        <div className="fade-up" style={{ animationDelay: "200ms" }}>
+          <TodoWidget />
         </div>
 
         <WidgetsGrid />
