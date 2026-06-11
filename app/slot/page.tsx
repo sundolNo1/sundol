@@ -222,7 +222,7 @@ export default function SlotPage() {
         <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-red-600/[0.06] rounded-full blur-[120px]" />
       </div>
 
-      <div className="relative w-full max-w-[320px]">
+      <div className="relative w-full max-w-[320px] sm:max-w-[360px]">
         <Link href="/games" className="inline-flex items-center gap-2 text-white/30 hover:text-amber-300/70 transition-colors text-sm mb-5">
           ← 게임 목록
         </Link>
