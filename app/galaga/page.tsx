@@ -21,7 +21,7 @@ function fpos(row: number, col: number): [number,number] {
 function rowType(r: number): EType { return r===0?"boss":r<=2?"butterfly":"bee"; }
 
 /* ══════════════════════════════════════════════════════════
-   AUDIO  (Web Audio API — lazy init, SSR-safe)
+   AUDIO
 ══════════════════════════════════════════════════════════ */
 let _actx: AudioContext | null = null;
 function ac(): AudioContext | null {
@@ -37,8 +37,7 @@ function tone(freq: number, dur: number, type: OscillatorType = "square", vol = 
   const ctx = ac(); if (!ctx) return;
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.connect(g); g.connect(ctx.destination);
-  o.type = type;
-  o.frequency.setValueAtTime(freq, ctx.currentTime);
+  o.type = type; o.frequency.setValueAtTime(freq, ctx.currentTime);
   if (freqEnd !== undefined)
     o.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 1), ctx.currentTime + dur);
   g.gain.setValueAtTime(vol, ctx.currentTime);
@@ -61,6 +60,19 @@ function noiseBurst(centerFreq: number, dur: number, vol = 0.15) {
   src.start(); src.stop(ctx.currentTime + dur);
 }
 
+function schedTones(pairs: [number,number][], type: OscillatorType = "square", vol = 0.09) {
+  const ctx = ac(); if (!ctx) return;
+  pairs.forEach(([f,t]) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(0, ctx.currentTime + t);
+    g.gain.setValueAtTime(vol, ctx.currentTime + t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t + 0.18);
+    o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.2);
+  });
+}
+
 const sfx = {
   fire:       () => tone(820, 0.07, "square", 0.07, 260),
   hit:        () => noiseBurst(480, 0.09, 0.09),
@@ -68,18 +80,9 @@ const sfx = {
   explBig:    () => { noiseBurst(85,  0.38, 0.26); tone(75,  0.38, "sawtooth", 0.09, 18); },
   playerDie:  () => { noiseBurst(130, 0.55, 0.28); tone(210, 0.45, "sawtooth", 0.09, 25); },
   beam:       () => { tone(85, 0.7, "sine", 0.12, 130); tone(170, 0.35, "sine", 0.05, 55); },
-  stageClear: () => {
-    const ctx = ac(); if (!ctx) return;
-    [[523,0],[659,0.13],[784,0.26],[1047,0.40]].forEach(([f,t]) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
-      o.type = "square"; o.frequency.value = f;
-      g.gain.setValueAtTime(0, ctx.currentTime + t);
-      g.gain.setValueAtTime(0.08, ctx.currentTime + t + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t + 0.18);
-      o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.2);
-    });
-  },
+  capture:    () => { tone(300, 0.8, "sine", 0.1, 80); noiseBurst(150, 0.4, 0.08); },
+  rescue:     () => schedTones([[330,0],[440,0.13],[554,0.26],[660,0.39],[880,0.55]],"square",0.1),
+  stageClear: () => schedTones([[523,0],[659,0.13],[784,0.26],[1047,0.40]],"square",0.08),
 };
 
 /* ══════════════════════════════════════════════════════════
@@ -109,15 +112,26 @@ interface Enemy {
   beam: boolean; beamLen: number; beamW: number; beamTimer: number;
   anim: number;
 }
-interface Bullet { x:number; y:number; vx:number; vy:number; fromE:boolean; }
-interface Expl   { x:number; y:number; r:number; maxR:number; life:number; color:string; }
-interface Star   { x:number; y:number; v:number; sz:number; }
+interface Bullet  { x:number; y:number; vx:number; vy:number; fromE:boolean; }
+interface Expl    { x:number; y:number; r:number; maxR:number; life:number; color:string; }
+interface Star    { x:number; y:number; v:number; sz:number; }
+
+// 납치된 기체
+interface Captured {
+  x: number; y: number;
+  captorId: number;
+  captorFx: number; captorFy: number;
+  state: "formation"|"rescuing"|"dead";
+  rescueT: number;
+  srcX: number; srcY: number;
+}
 
 interface G {
   enemies: Enemy[]; bullets: Bullet[]; expls: Expl[]; stars: Star[];
   px: number; py: number; pInv: number;
   pBeam: boolean; pBeamT: number; pBeamSrc: number;
   pdouble: boolean;
+  captured: Captured | null;
   lives: number; score: number; hiScore: number;
   stage: number; gs: GS; stageT: number; stageBonus: number;
   fosc: number; foscDir: number; foscSpd: number;
@@ -181,23 +195,22 @@ function makeStars():Star[]{
     v:20+Math.random()*50, sz:0.4+Math.random()*1.6}));
 }
 
-function newGame(stage=1, score=0, lives=3, hiScore=0): G {
-  const enemies = makeEnemies();
-  const s = stage;
+function newGame(stage=1, score=0, lives=3, hiScore=0, pdouble=false): G {
+  const enemies = makeEnemies(); const s = stage;
   return {
     enemies, bullets:[], expls:[], stars:makeStars(),
     px:CW/2, py:CH-55, pInv:0,
-    pBeam:false, pBeamT:0, pBeamSrc:-1, pdouble:false,
-    lives, score, hiScore: Math.max(hiScore, score),
+    pBeam:false, pBeamT:0, pBeamSrc:-1,
+    pdouble, captured:null,
+    lives, score, hiScore:Math.max(hiScore,score),
     stage:s, gs:"entering", stageT:0, stageBonus:0,
-    fosc:0, foscDir:1, foscSpd: 28 + s*7,
-    entryGroups: makeEntryGroups(enemies),
+    fosc:0, foscDir:1, foscSpd:28+s*7,
+    entryGroups:makeEntryGroups(enemies),
     entryBusy:false, entryGroupTimer:0.5, curGroup:[],
     diveTimer:4, fireCD:0, eFireT:1.5,
-    diveSpd:     230 + s*12,
-    eBulletSpd:  185 + s*9,
-    eFireBase:   Math.max(0.30, 0.75 - s*0.04),
-    keys: new Set(),
+    diveSpd:230+s*12, eBulletSpd:185+s*9,
+    eFireBase:Math.max(0.30, 0.75-s*0.04),
+    keys:new Set(),
   };
 }
 
@@ -212,15 +225,15 @@ function drawBg(ctx:CanvasRenderingContext2D, stars:Star[]){
   }
 }
 
-function drawShip(ctx:CanvasRenderingContext2D, x:number, y:number, alpha=1){
+function drawShip(ctx:CanvasRenderingContext2D, x:number, y:number, alpha=1, tint=""){
   ctx.save(); ctx.globalAlpha=alpha; ctx.translate(x,y);
-  ctx.fillStyle="#5577cc";
+  ctx.fillStyle=tint||"#5577cc";
   ctx.beginPath(); ctx.moveTo(-14,8); ctx.lineTo(-22,16); ctx.lineTo(-7,6); ctx.closePath(); ctx.fill();
   ctx.beginPath(); ctx.moveTo(14,8);  ctx.lineTo(22,16);  ctx.lineTo(7,6);  ctx.closePath(); ctx.fill();
-  ctx.fillStyle="#aac0ff";
+  ctx.fillStyle=tint?"#cc88ff":"#aac0ff";
   ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(-9,9); ctx.lineTo(0,13); ctx.lineTo(9,9); ctx.closePath(); ctx.fill();
-  ctx.fillStyle="#ddeeff"; ctx.fillRect(-2,-18,4,24);
-  ctx.fillStyle=Math.random()>0.35?"#ff8822":"#ffcc44";
+  ctx.fillStyle=tint?"#eeddff":"#ddeeff"; ctx.fillRect(-2,-18,4,24);
+  ctx.fillStyle=tint?"#ff44cc":(Math.random()>0.35?"#ff8822":"#ffcc44");
   ctx.beginPath(); ctx.ellipse(0,14,4,7,0,0,Math.PI*2); ctx.fill();
   ctx.restore();
 }
@@ -228,7 +241,24 @@ function drawShip(ctx:CanvasRenderingContext2D, x:number, y:number, alpha=1){
 function drawPlayer(ctx:CanvasRenderingContext2D, g:G){
   if(g.pInv>0 && Math.floor(g.pInv*14)%2===0) return;
   drawShip(ctx, g.px, g.py);
-  if(g.pdouble) drawShip(ctx, g.px-38, g.py, 0.75);
+  if(g.pdouble) drawShip(ctx, g.px-38, g.py, 0.85);
+}
+
+// 납치된 기체 (보라/마젠타 색조)
+function drawCaptured(ctx:CanvasRenderingContext2D, g:G){
+  const c = g.captured;
+  if(!c || c.state==="dead") return;
+  let alpha = 1;
+  if(c.state==="rescuing"){
+    alpha = 0.65 + Math.sin(Date.now()/55)*0.35; // 귀환 중 깜빡임
+  }
+  drawShip(ctx, c.x, c.y, alpha, "#774499");
+  // 납치 표시 링
+  ctx.save(); ctx.globalAlpha=alpha*0.7;
+  ctx.strokeStyle="#ff66cc"; ctx.lineWidth=1.5;
+  ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.arc(c.x, c.y, 19, 0, Math.PI*2); ctx.stroke();
+  ctx.restore();
 }
 
 function drawBee(ctx:CanvasRenderingContext2D, e:Enemy){
@@ -236,7 +266,7 @@ function drawBee(ctx:CanvasRenderingContext2D, e:Enemy){
   const wf=Math.sin(e.anim*13)*3;
   ctx.fillStyle="rgba(180,220,255,0.6)";
   ctx.beginPath(); ctx.ellipse(-12,-2+wf,9,5,-0.3,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(12,-2+wf,9,5,0.3,0,Math.PI*2);  ctx.fill();
+  ctx.beginPath(); ctx.ellipse(12,-2+wf,9,5,0.3,0,Math.PI*2); ctx.fill();
   ctx.fillStyle="#e8d520";
   ctx.beginPath(); ctx.ellipse(0,0,6,9,0,0,Math.PI*2); ctx.fill();
   ctx.fillStyle="#ff2000";
@@ -323,24 +353,28 @@ function drawExpl(ctx:CanvasRenderingContext2D, ex:Expl){
 }
 
 function drawHUD(ctx:CanvasRenderingContext2D, g:G){
-  // 현재 점수 (좌)
   ctx.fillStyle="#ffffff"; ctx.font="bold 16px monospace";
   ctx.textAlign="left"; ctx.fillText(String(g.score).padStart(7,"0"), 8, 24);
 
-  // 하이스코어 (중앙)
   ctx.textAlign="center";
   ctx.fillStyle="#ff7777"; ctx.font="bold 8px monospace";
   ctx.fillText("HI-SCORE", CW/2, 13);
   ctx.fillStyle="#ffbbbb"; ctx.font="bold 15px monospace";
   ctx.fillText(String(g.hiScore).padStart(7,"0"), CW/2, 26);
 
-  // 스테이지 + 목숨 (우)
   ctx.fillStyle="#555555"; ctx.font="9px monospace";
   ctx.textAlign="right";
   ctx.fillText(`STAGE ${g.stage}`, CW-8, 13);
   for(let i=0;i<g.lives;i++){
     ctx.save(); ctx.translate(CW-14-i*22, 26); ctx.scale(0.46,0.46);
     ctx.fillStyle="#aac0ff";
+    ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(-9,9); ctx.lineTo(0,13); ctx.lineTo(9,9); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  // 더블 표시
+  if(g.pdouble){
+    ctx.save(); ctx.translate(CW-14-(g.lives)*22, 26); ctx.scale(0.46,0.46);
+    ctx.fillStyle="#cc88ff";
     ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(-9,9); ctx.lineTo(0,13); ctx.lineTo(9,9); ctx.closePath(); ctx.fill();
     ctx.restore();
   }
@@ -392,12 +426,10 @@ function updEntry(g:G, dt:number){
     g.entryGroupTimer-=dt;
     if(g.entryGroupTimer<=0){
       g.curGroup=g.entryGroups.shift()!;
-      g.entryBusy=true;
-      g.entryGroupTimer=0.25;
+      g.entryBusy=true; g.entryGroupTimer=0.25;
       for(const e of g.curGroup){ e.et=0; e.state="entering"; const[sx,sy]=e.ep[0]; e.x=sx; e.y=sy; }
     }
   }
-
   if(g.entryGroups.length===0&&!g.entryBusy){
     const allIn=g.enemies.every(e=>e.state==="formation"||e.state==="dead");
     if(allIn){ g.gs="playing"; g.diveTimer=3; }
@@ -435,6 +467,12 @@ function spawnDive(g:G){
   }
 }
 
+function triggerRescue(g:G){
+  const c = g.captured; if(!c || c.state!=="formation") return;
+  c.state="rescuing"; c.rescueT=0; c.srcX=c.x; c.srcY=c.y;
+  sfx.rescue();
+}
+
 function updDiving(g:G, dt:number){
   for(const e of g.enemies){
     if(e.state!=="diving") continue;
@@ -446,9 +484,10 @@ function updDiving(g:G, dt:number){
       e.beamW=18+e.beamLen*0.08;
       if(e.beamTimer>1.2) e.beam=false;
 
-      if(!g.pBeam&&e.beam&&g.pInv<=0){
+      // 빔이 플레이어에 닿으면 납치 시작 — 이미 납치된 기체가 없을 때만
+      if(!g.pBeam && e.beam && g.pInv<=0 && !g.captured){
         const bx=e.x, by=e.y+14, blen=e.beamLen, bw=e.beamW*(1+1.8*(e.beamLen/CH));
-        if(g.py>=by&&g.py<=by+blen&&g.px>=bx-bw/2&&g.px<=bx+bw/2){
+        if(g.py>=by && g.py<=by+blen && g.px>=bx-bw/2 && g.px<=bx+bw/2){
           g.pBeam=true; g.pBeamT=0; g.pBeamSrc=e.id;
         }
       }
@@ -473,9 +512,55 @@ function updDiving(g:G, dt:number){
     const src=g.enemies.find(e=>e.id===g.pBeamSrc);
     if(!src||src.state==="dead"||!src.beam){ g.pBeam=false; }
     else if(g.pBeamT>1.6){
-      g.pBeam=false; g.lives--;
-      g.pInv=3;
-      if(g.lives<=0) g.gs="over";
+      // 납치 완료
+      g.pBeam=false;
+      sfx.capture();
+      if(g.pdouble){
+        // 더블 상태에서 납치 → 더블 해제, 기체 한 대 납치됨
+        g.pdouble=false;
+        g.captured={
+          x:src.x, y:src.y+30,
+          captorId:src.id, captorFx:src.fx, captorFy:src.fy,
+          state:"formation", rescueT:0, srcX:0, srcY:0,
+        };
+        g.pInv=2;
+      } else {
+        // 일반 납치 → 목숨 차감 후 기체 생성
+        g.lives--;
+        g.pInv=3;
+        if(g.lives>0){
+          g.captured={
+            x:src.x, y:src.y+30,
+            captorId:src.id, captorFx:src.fx, captorFy:src.fy,
+            state:"formation", rescueT:0, srcX:0, srcY:0,
+          };
+        }
+        if(g.lives<=0) g.gs="over";
+      }
+    }
+  }
+}
+
+// 납치 기체 업데이트
+function updCaptured(g:G, dt:number){
+  const c = g.captured;
+  if(!c || c.state==="dead") return;
+
+  if(c.state==="formation"){
+    // 납치한 보스의 편대 위치 아래에 붙어서 이동
+    c.x = c.captorFx + g.fosc;
+    c.y = c.captorFy + 40;
+  } else if(c.state==="rescuing"){
+    c.rescueT+=dt;
+    const prog = Math.min(1, c.rescueT / 1.3);
+    // easeInOut
+    const t = prog<0.5 ? 2*prog*prog : 1-Math.pow(-2*prog+2,2)/2;
+    c.x = c.srcX + (g.px - c.srcX)*t;
+    c.y = c.srcY + (g.py - c.srcY)*t;
+    if(prog>=1){
+      // 귀환 완료 → 더블 캐논 획득
+      g.captured=null;
+      g.pdouble=true;
     }
   }
 }
@@ -495,9 +580,12 @@ function updBullets(g:G, dt:number){
   for(const b of g.bullets){ b.x+=b.vx*dt; b.y+=b.vy*dt; }
   g.bullets=g.bullets.filter(b=>b.y>-30&&b.y<CH+30&&b.x>-30&&b.x<CW+30);
 
-  // 플레이어 탄 → 적
-  for(let bi=g.bullets.length-1;bi>=0;bi--){
+  // 플레이어 탄 처리
+  for(let bi=g.bullets.length-1; bi>=0; bi--){
     const b=g.bullets[bi]; if(b.fromE) continue;
+    let consumed=false;
+
+    // 적 충돌
     for(const e of g.enemies){
       if(e.state==="dead"||e.state==="waiting") continue;
       const r=e.type==="boss"?16:12;
@@ -509,28 +597,42 @@ function updBullets(g:G, dt:number){
           const base=e.type==="bee"?100:e.type==="butterfly"?160:400;
           g.score+=wasDiving?base*2:base;
           if(g.score>g.hiScore) g.hiScore=g.score;
-          const c=e.type==="boss"?"#ffaa00":e.type==="butterfly"?"#4466ff":"#ffdd22";
-          g.expls.push({x:e.x,y:e.y,r:4,maxR:e.type==="boss"?38:24,life:1,color:c});
+          const col=e.type==="boss"?"#ffaa00":e.type==="butterfly"?"#4466ff":"#ffdd22";
+          g.expls.push({x:e.x,y:e.y,r:4,maxR:e.type==="boss"?38:24,life:1,color:col});
           e.type==="boss" ? sfx.explBig() : sfx.explSmall();
+          // 납치한 보스 격추 → 기체 귀환 트리거
+          if(e.type==="boss") triggerRescue(g);
         } else {
           g.expls.push({x:e.x,y:e.y,r:3,maxR:14,life:1,color:"#ff8800"});
           sfx.hit();
         }
-        g.bullets.splice(bi,1); break;
+        g.bullets.splice(bi,1); consumed=true; break;
+      }
+    }
+
+    // 납치된 기체 충돌 (아직 탄이 소비되지 않았을 때)
+    if(!consumed && g.captured && g.captured.state==="formation"){
+      const c=g.captured;
+      if(Math.abs(b.x-c.x)<14 && Math.abs(b.y-c.y)<14){
+        c.state="dead";
+        g.expls.push({x:c.x,y:c.y,r:4,maxR:28,life:1,color:"#cc88ff"});
+        sfx.explSmall();
+        g.bullets.splice(bi,1);
       }
     }
   }
 
   // 적 탄 → 플레이어
   if(g.pInv<=0&&!g.pBeam){
-    for(let bi=g.bullets.length-1;bi>=0;bi--){
+    for(let bi=g.bullets.length-1; bi>=0; bi--){
       const b=g.bullets[bi]; if(!b.fromE) continue;
       if(Math.abs(b.x-g.px)<14&&Math.abs(b.y-g.py)<13){
         g.bullets.splice(bi,1);
         g.lives--; g.pInv=2.5;
         g.expls.push({x:g.px,y:g.py,r:4,maxR:32,life:1,color:"#aabbff"});
         sfx.playerDie();
-        if(g.lives<=0) g.gs="over";
+        if(g.pdouble) g.pdouble=false; // 더블 상태면 한 대만 잃음
+        else if(g.lives<=0) g.gs="over";
         break;
       }
     }
@@ -541,13 +643,14 @@ function updBullets(g:G, dt:number){
     for(const e of g.enemies){
       if(e.state!=="diving") continue;
       if(Math.abs(e.x-g.px)<18&&Math.abs(e.y-g.py)<18){
-        const c=e.type==="boss"?"#ffaa00":e.type==="butterfly"?"#4466ff":"#ffdd22";
-        g.expls.push({x:e.x,y:e.y,r:4,maxR:30,life:1,color:c});
+        const col=e.type==="boss"?"#ffaa00":e.type==="butterfly"?"#4466ff":"#ffdd22";
+        g.expls.push({x:e.x,y:e.y,r:4,maxR:30,life:1,color:col});
         e.state="dead"; e.beam=false;
         g.lives--; g.pInv=2.5;
         g.expls.push({x:g.px,y:g.py,r:4,maxR:32,life:1,color:"#aabbff"});
         sfx.playerDie();
-        if(g.lives<=0) g.gs="over";
+        if(g.pdouble) g.pdouble=false;
+        else if(g.lives<=0) g.gs="over";
         break;
       }
     }
@@ -572,6 +675,7 @@ function update(g:G, dt:number){
 
   if(g.gs==="stageclear"){
     updStars(g.stars,dt);
+    updCaptured(g,dt); // 스테이지 클리어 중에도 귀환 애니메이션 진행
     g.stageT-=dt; return;
   }
 
@@ -583,6 +687,7 @@ function update(g:G, dt:number){
   if(g.pInv>0)   g.pInv-=dt;
 
   updStars(g.stars,dt);
+  updCaptured(g,dt);
 
   if(g.gs==="entering"){ updEntry(g,dt); return; }
 
@@ -598,6 +703,8 @@ function update(g:G, dt:number){
   g.expls=updExpls(g.expls,dt);
 
   if(g.enemies.every(e=>e.state==="dead")){
+    // 남은 납치 기체 자동 귀환
+    if(g.captured&&g.captured.state==="formation") triggerRescue(g);
     const bonus=500*g.stage;
     g.score+=bonus;
     if(g.score>g.hiScore) g.hiScore=g.score;
@@ -612,6 +719,7 @@ function drawFrame(canvas:HTMLCanvasElement, g:G){
   drawBg(ctx,g.stars);
   drawHUD(ctx,g);
   for(const e of g.enemies) drawEnemy(ctx,e);
+  drawCaptured(ctx,g);
   for(const b of g.bullets) drawBullet(ctx,b);
   for(const ex of g.expls)  drawExpl(ctx,ex);
   drawPlayer(ctx,g);
@@ -627,65 +735,65 @@ export default function GalagaPage(){
   const rafRef    = useRef<number>(0);
   const lastT     = useRef<number>(0);
   const loopRef   = useRef<(t:number)=>void>(null!);
-  const [ui, setUi]       = useState<{gs:"idle"|"playing"|"over"; score:number; isNew?:boolean}>({gs:"idle",score:0});
+  const [ui, setUi]           = useState<{gs:"idle"|"playing"|"over"; score:number; isNew?:boolean}>({gs:"idle",score:0});
   const [hiScore, setHiScore] = useState(0);
 
   useEffect(() => { setHiScore(loadHi()); }, []);
 
   loopRef.current = (t:number) => {
-    const dt = Math.min((t-lastT.current)/1000, 0.05);
-    lastT.current = t;
-    const g = gRef.current, canvas = canvasRef.current;
+    const dt=Math.min((t-lastT.current)/1000,0.05);
+    lastT.current=t;
+    const g=gRef.current, canvas=canvasRef.current;
     if(!g||!canvas) return;
 
     if(g.gs==="stageclear"&&g.stageT<=0){
-      gRef.current = newGame(g.stage+1, g.score, g.lives, g.hiScore);
+      gRef.current=newGame(g.stage+1, g.score, g.lives, g.hiScore, g.pdouble);
     }
 
     update(gRef.current!, dt);
     drawFrame(canvas, gRef.current!);
 
     if(gRef.current!.gs==="over"){
-      const finalScore = gRef.current!.score;
-      const isNew = saveHi(finalScore);
+      const finalScore=gRef.current!.score;
+      const isNew=saveHi(finalScore);
       setHiScore(loadHi());
       setUi({gs:"over", score:finalScore, isNew});
       return;
     }
-    rafRef.current = requestAnimationFrame(loopRef.current);
+    rafRef.current=requestAnimationFrame(loopRef.current);
   };
 
-  const startGame = useCallback(() => {
+  const startGame=useCallback(()=>{
     if(rafRef.current) cancelAnimationFrame(rafRef.current);
-    const hi = loadHi();
-    gRef.current = newGame(1, 0, 3, hi);
-    setUi({gs:"playing", score:0});
-    lastT.current = performance.now();
-    rafRef.current = requestAnimationFrame(loopRef.current);
-  }, []);
+    const hi=loadHi();
+    gRef.current=newGame(1,0,3,hi);
+    setUi({gs:"playing",score:0});
+    lastT.current=performance.now();
+    rafRef.current=requestAnimationFrame(loopRef.current);
+  },[]);
 
-  useEffect(() => {
-    const down = (e:KeyboardEvent) => {
+  useEffect(()=>{
+    const down=(e:KeyboardEvent)=>{
       if(!gRef.current) return;
       gRef.current.keys.add(e.key);
       if(e.key===" ") e.preventDefault();
     };
-    const up = (e:KeyboardEvent) => { if(gRef.current) gRef.current.keys.delete(e.key); };
-    window.addEventListener("keydown", down);
-    window.addEventListener("keyup", up);
-    return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
-  }, []);
+    const up=(e:KeyboardEvent)=>{ if(gRef.current) gRef.current.keys.delete(e.key); };
+    window.addEventListener("keydown",down);
+    window.addEventListener("keyup",up);
+    return()=>{ window.removeEventListener("keydown",down); window.removeEventListener("keyup",up); };
+  },[]);
 
-  useEffect(() => () => { if(rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
+  useEffect(()=>()=>{ if(rafRef.current) cancelAnimationFrame(rafRef.current); },[]);
 
-  const touchKey = (key:string, on:boolean) => {
-    if(gRef.current){ on ? gRef.current.keys.add(key) : gRef.current.keys.delete(key); }
+  const touchKey=(key:string,on:boolean)=>{
+    if(gRef.current){ on?gRef.current.keys.add(key):gRef.current.keys.delete(key); }
   };
 
-  const showing = ui.gs==="idle" || ui.gs==="over";
-  const hiStr   = String(hiScore).padStart(7,"0");
+  const showing=ui.gs==="idle"||ui.gs==="over";
+  const hiStr=String(hiScore).padStart(7,"0");
 
-  return (
+  return(
     <main className="min-h-screen bg-[#01020a] flex flex-col items-center p-3 sm:p-5">
       <div className="w-full max-w-[420px] flex items-center gap-4 mb-4 pt-2">
         <Link href="/games" className="text-white/25 hover:text-amber-300/70 transition-colors text-sm">← 게임 목록</Link>
@@ -696,28 +804,28 @@ export default function GalagaPage(){
       <div className="relative w-full" style={{maxWidth:CW}}>
         <canvas ref={canvasRef} width={CW} height={CH}
           className="w-full rounded-xl border border-white/[0.08]"
-          style={{display:"block", imageRendering:"pixelated"}}
+          style={{display:"block",imageRendering:"pixelated"}}
         />
 
-        {showing && (
+        {showing&&(
           <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl"
-            style={{background:"rgba(1,2,10,0.92)", backdropFilter:"blur(4px)"}}>
+            style={{background:"rgba(1,2,10,0.92)",backdropFilter:"blur(4px)"}}>
 
-            {/* 하이스코어 공통 표시 */}
             <div className="absolute top-5 text-center">
               <p className="text-[#ff7777] text-[9px] font-bold tracking-widest">HI-SCORE</p>
               <p className="text-[#ffbbbb] font-bold text-lg tabular-nums tracking-wider">{hiStr}</p>
             </div>
 
-            {ui.gs==="idle" ? (
+            {ui.gs==="idle"?(
               <>
                 <p className="text-[#f0ead6] font-bold text-3xl tracking-[0.25em] mb-1">GALAGA</p>
-                <p className="text-white/25 text-xs tracking-widest mb-6">1981 · NAMCO</p>
+                <p className="text-white/25 text-xs tracking-widest mb-5">1981 · NAMCO</p>
                 <div className="text-white/30 text-[11px] mb-2 text-center space-y-1">
-                  <p>← → 이동 &nbsp; <kbd className="bg-white/10 px-1.5 py-0.5 rounded text-white/50">SPACE</kbd> / Z 발사</p>
+                  <p>← → 이동 &nbsp;<kbd className="bg-white/10 px-1.5 py-0.5 rounded text-white/50">SPACE</kbd> / Z 발사</p>
                   <p className="text-amber-400/50">보스 트랙터 빔에 닿으면 기체가 납치됩니다!</p>
+                  <p className="text-violet-400/60">납치한 보스를 격추하면 기체 귀환 → 더블 캐논!</p>
                 </div>
-                <div className="flex gap-4 text-[10px] text-white/20 mb-7 mt-1">
+                <div className="flex gap-3 text-[10px] text-white/20 mb-7 mt-1 flex-wrap justify-center">
                   <span>🐝 벌 = 100/200pts</span>
                   <span>🦋 나비 = 160/320pts</span>
                   <span>👾 보스 = 400/800pts</span>
@@ -727,18 +835,14 @@ export default function GalagaPage(){
                   INSERT COIN
                 </button>
               </>
-            ) : (
+            ):(
               <>
                 <p className="text-red-400 font-bold text-3xl tracking-widest mb-3">GAME OVER</p>
-                {ui.isNew && (
-                  <p className="text-yellow-300 font-bold text-sm tracking-widest mb-1 animate-pulse">
-                    ★ NEW RECORD ★
-                  </p>
+                {ui.isNew&&(
+                  <p className="text-yellow-300 font-bold text-sm tracking-widest mb-1 animate-pulse">★ NEW RECORD ★</p>
                 )}
                 <p className="text-white/40 text-xs tracking-widest">SCORE</p>
-                <p className="text-amber-300 font-bold text-4xl tabular-nums mb-6">
-                  {ui.score.toLocaleString()}
-                </p>
+                <p className="text-amber-300 font-bold text-4xl tabular-nums mb-6">{ui.score.toLocaleString()}</p>
                 <button onClick={startGame}
                   className="px-10 py-3 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 font-bold tracking-widest hover:bg-amber-500/30 transition-all">
                   PLAY AGAIN
@@ -749,29 +853,13 @@ export default function GalagaPage(){
         )}
       </div>
 
-      {/* 모바일 컨트롤 */}
       <div className="mt-3 flex gap-2 w-full" style={{maxWidth:CW}}>
-        <button
-          onPointerDown={()=>touchKey("ArrowLeft",true)}
-          onPointerUp={()=>touchKey("ArrowLeft",false)}
-          onPointerLeave={()=>touchKey("ArrowLeft",false)}
-          className="flex-1 h-16 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white/60 text-3xl select-none active:bg-white/[0.12]">
-          ←
-        </button>
-        <button
-          onPointerDown={()=>touchKey(" ",true)}
-          onPointerUp={()=>touchKey(" ",false)}
-          onPointerLeave={()=>touchKey(" ",false)}
-          className="flex-[1.5] h-16 rounded-xl bg-red-500/15 border border-red-400/30 text-red-300 font-bold tracking-widest select-none active:bg-red-500/25">
-          FIRE
-        </button>
-        <button
-          onPointerDown={()=>touchKey("ArrowRight",true)}
-          onPointerUp={()=>touchKey("ArrowRight",false)}
-          onPointerLeave={()=>touchKey("ArrowRight",false)}
-          className="flex-1 h-16 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white/60 text-3xl select-none active:bg-white/[0.12]">
-          →
-        </button>
+        <button onPointerDown={()=>touchKey("ArrowLeft",true)} onPointerUp={()=>touchKey("ArrowLeft",false)} onPointerLeave={()=>touchKey("ArrowLeft",false)}
+          className="flex-1 h-16 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white/60 text-3xl select-none active:bg-white/[0.12]">←</button>
+        <button onPointerDown={()=>touchKey(" ",true)} onPointerUp={()=>touchKey(" ",false)} onPointerLeave={()=>touchKey(" ",false)}
+          className="flex-[1.5] h-16 rounded-xl bg-red-500/15 border border-red-400/30 text-red-300 font-bold tracking-widest select-none active:bg-red-500/25">FIRE</button>
+        <button onPointerDown={()=>touchKey("ArrowRight",true)} onPointerUp={()=>touchKey("ArrowRight",false)} onPointerLeave={()=>touchKey("ArrowRight",false)}
+          className="flex-1 h-16 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white/60 text-3xl select-none active:bg-white/[0.12]">→</button>
       </div>
     </main>
   );
