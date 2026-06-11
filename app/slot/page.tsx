@@ -81,13 +81,14 @@ export default function SlotPage() {
   const [autoCount, setAutoCount] = useState(0);
   const [speed, setSpeed]         = useState(1);
 
-  const autoRef    = useRef(false);
-  const creditsRef = useRef(200);
-  const betRef     = useRef(10);
-  const speedRef   = useRef(1);
-  const isSpinRef  = useRef(false);
-  const ivRefs     = useRef<ReturnType<typeof setInterval>[]>([]);
-  const tmRefs     = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const autoRef     = useRef(false);
+  const creditsRef  = useRef(200);
+  const betRef      = useRef(10);
+  const speedRef    = useRef(1);
+  const isSpinRef   = useRef(false);
+  const ivRefs      = useRef<ReturnType<typeof setInterval>[]>([]);
+  const tmRefs      = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const autoNextRef = useRef<ReturnType<typeof setTimeout> | null>(null); // 다음 오토스핀 예약만 담음
 
   useEffect(() => { creditsRef.current = credits; }, [credits]);
   useEffect(() => { betRef.current = bet; }, [bet]);
@@ -170,7 +171,7 @@ export default function SlotPage() {
               if (creditsRef.current >= betRef.current) {
                 setAutoCount(c => c + 1);
                 const { pause, winPause } = SPEEDS[speedRef.current];
-                tmRefs.current.push(setTimeout(handleSpin, totalWin >= 20 * currentBet ? winPause : pause));
+                autoNextRef.current = setTimeout(handleSpin, totalWin >= 20 * currentBet ? winPause : pause);
               } else {
                 autoRef.current = false;
                 setAutoSpin(false);
@@ -194,8 +195,12 @@ export default function SlotPage() {
       setAutoCount(0);
       if (!isSpinRef.current) handleSpin();
     } else {
-      tmRefs.current.forEach(clearTimeout);
-      tmRefs.current = [];
+      // 진행 중인 스핀의 릴 정지 타이머(tmRefs)는 건드리지 않고
+      // 다음 스핀 예약 타이머만 취소
+      if (autoNextRef.current !== null) {
+        clearTimeout(autoNextRef.current);
+        autoNextRef.current = null;
+      }
     }
   }, [handleSpin]);
 
