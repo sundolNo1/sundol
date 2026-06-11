@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Settings, X } from "lucide-react";
+import { Settings, X, Monitor, Smartphone } from "lucide-react";
 import { createPortal } from "react-dom";
 import ClockWidget from "./ClockWidget";
 import WeatherWidget from "./WeatherWidget";
@@ -13,6 +13,7 @@ import TodoWidget from "./TodoWidget";
 import CryptoWidget from "./CryptoWidget";
 
 type WidgetKey = "clock" | "weather" | "bookmarks" | "news" | "stocks" | "todo" | "crypto" | "exchange";
+type ViewMode = "auto" | "pc" | "mobile";
 
 const WIDGET_META: { key: WidgetKey; label: string; icon: string }[] = [
   { key: "clock",    label: "시계",      icon: "🕐" },
@@ -31,28 +32,37 @@ const DEFAULT_VIS: Record<WidgetKey, boolean> = {
 };
 
 const VIS_KEY = "widget_visibility_v1";
+const VIEW_KEY = "portal_view_mode";
 
 const CELL = "hover:shadow-[0_0_32px_rgba(251,191,36,0.07)] hover:-translate-y-0.5 transition-all duration-300 rounded-2xl";
 
+function getColClass(
+  cols: "always2" | "sm" | "lg",
+  viewMode: ViewMode,
+  hasBoth: boolean
+): string {
+  if (!hasBoth) return "grid-cols-1";
+  if (viewMode === "pc") return "grid-cols-2";
+  if (viewMode === "mobile") {
+    return cols === "always2" ? "grid-cols-2" : "grid-cols-1";
+  }
+  // auto — 기존 반응형
+  if (cols === "always2") return "grid-cols-2";
+  if (cols === "lg") return "grid-cols-1 lg:grid-cols-2";
+  return "grid-cols-1 sm:grid-cols-2";
+}
+
 function WidgetRow({
-  left, right, delay, cols = "sm",
+  left, right, delay, cols = "sm", viewMode,
 }: {
   left: React.ReactNode;
   right: React.ReactNode;
   delay: string;
   cols?: "always2" | "sm" | "lg";
+  viewMode: ViewMode;
 }) {
   if (!left && !right) return null;
-
-  const colClass =
-    left && right
-      ? cols === "always2"
-        ? "grid-cols-2"
-        : cols === "lg"
-        ? "grid-cols-1 lg:grid-cols-2"
-        : "grid-cols-1 sm:grid-cols-2"
-      : "grid-cols-1";
-
+  const colClass = getColClass(cols, viewMode, !!(left && right));
   return (
     <div className={`fade-up grid gap-3 sm:gap-4 ${colClass}`} style={{ animationDelay: delay }}>
       {left  && <div className={CELL}>{left}</div>}
@@ -71,13 +81,26 @@ export default function WidgetsGrid() {
       return DEFAULT_VIS;
     }
   });
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window === "undefined") return "auto";
+    return (localStorage.getItem(VIEW_KEY) as ViewMode) ?? "auto";
+  });
   const [showSettings, setShowSettings] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { localStorage.setItem(VIS_KEY, JSON.stringify(vis)); }, [vis]);
+  useEffect(() => { localStorage.setItem(VIEW_KEY, viewMode); }, [viewMode]);
 
   const toggle = (key: WidgetKey) => setVis((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const cycleView = () => {
+    setViewMode((prev) => {
+      if (prev === "auto") return "pc";
+      if (prev === "pc") return "mobile";
+      return "auto";
+    });
+  };
 
   const onKey = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") setShowSettings(false);
@@ -87,28 +110,41 @@ export default function WidgetsGrid() {
     return () => document.removeEventListener("keydown", onKey);
   }, [showSettings, onKey]);
 
+  const viewLabel = viewMode === "pc" ? "PC" : viewMode === "mobile" ? "모바일" : "자동";
+  const ViewIcon = viewMode === "mobile" ? Smartphone : Monitor;
+
   return (
     <>
       <div className="space-y-3 sm:space-y-6">
-        <WidgetRow delay="240ms" cols="always2"
+        <WidgetRow delay="240ms" cols="always2" viewMode={viewMode}
           left={vis.clock    ? <ClockWidget />    : null}
           right={vis.weather ? <WeatherWidget />  : null}
         />
-        <WidgetRow delay="320ms" cols="lg"
+        <WidgetRow delay="320ms" cols="lg" viewMode={viewMode}
           left={vis.bookmarks ? <BookmarksWidget /> : null}
           right={vis.news     ? <NewsWidget />      : null}
         />
-        <WidgetRow delay="400ms" cols="sm"
+        <WidgetRow delay="400ms" cols="sm" viewMode={viewMode}
           left={vis.stocks ? <StocksWidget /> : null}
           right={vis.todo  ? <TodoWidget />   : null}
         />
-        <WidgetRow delay="480ms" cols="sm"
+        <WidgetRow delay="480ms" cols="sm" viewMode={viewMode}
           left={vis.crypto   ? <CryptoWidget />   : null}
           right={vis.exchange ? <ExchangeWidget /> : null}
         />
       </div>
 
-      {/* 설정 버튼 */}
+      {/* 뷰 전환 버튼 */}
+      <button
+        onClick={cycleView}
+        className="fixed bottom-6 left-6 flex items-center gap-1.5 h-11 px-3 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/[0.1] text-white/40 hover:text-amber-400/80 hover:bg-white/[0.1] transition-all shadow-lg z-50"
+        title="레이아웃 전환"
+      >
+        <ViewIcon className="w-4 h-4 flex-shrink-0" />
+        <span className="text-xs font-medium">{viewLabel}</span>
+      </button>
+
+      {/* 위젯 설정 버튼 */}
       <button
         onClick={() => setShowSettings(true)}
         className="fixed bottom-6 right-6 w-11 h-11 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/[0.1] flex items-center justify-center text-white/40 hover:text-amber-400/80 hover:bg-white/[0.1] transition-all shadow-lg z-50"
