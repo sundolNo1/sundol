@@ -525,7 +525,7 @@ export default function GalagaPage(){
   const rafRef   =useRef<number>(0);
   const lastT    =useRef<number>(0);
   const loopRef  =useRef<(t:number)=>void>(null!);
-  const [ui, setUi]=useState<{gs:"idle"|"over";score:number}>({gs:"idle",score:0});
+  const [ui, setUi]=useState<{gs:"idle"|"playing"|"over";score:number}>({gs:"idle",score:0});
 
   loopRef.current=(t:number)=>{
     const dt=Math.min((t-lastT.current)/1000,0.05);
@@ -551,7 +551,7 @@ export default function GalagaPage(){
   const startGame=useCallback(()=>{
     if(rafRef.current) cancelAnimationFrame(rafRef.current);
     gRef.current=newGame(1);
-    setUi({gs:"idle",score:0});
+    setUi({gs:"playing",score:0});
     lastT.current=performance.now();
     rafRef.current=requestAnimationFrame(loopRef.current);
   },[]);
