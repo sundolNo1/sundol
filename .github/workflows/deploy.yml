@@ -11,7 +11,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Deploy to Vercel
-        run: npx vercel --prod --yes --token ${{ secrets.VERCEL_TOKEN }} --scope syoon4186-3684s-projects
+        run: npx vercel --prod --yes --scope syoon4186-3684s-projects
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_XkcSojL4wVy54NWOdbX6NJNk
           VERCEL_PROJECT_ID: prj_1PsK50o4GxChkzq12IQLwEJjVhbH
