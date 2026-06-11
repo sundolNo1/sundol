@@ -23,7 +23,7 @@ function RateRow({ rate }: { rate: RateItem }) {
       href={`https://finance.naver.com/marketindex/exchangeDetail.naver?marketindexCd=FX_${rate.code}KRW`}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center justify-between px-1 py-2 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.04] rounded-lg transition-colors group cursor-pointer"
+      className="flex items-center justify-between px-1 py-2 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.04] active:bg-white/[0.06] rounded-lg transition-colors group cursor-pointer"
     >
       <div className="flex items-center gap-2 min-w-0">
         <span className="text-base flex-shrink-0">{rate.flag}</span>

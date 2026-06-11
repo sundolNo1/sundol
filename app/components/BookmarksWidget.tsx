@@ -247,14 +247,14 @@ export default function BookmarksWidget() {
                     <span className="text-xs text-white/40 group-hover:text-white/70 truncate w-full text-center transition-colors">{bm.title}</span>
                   </a>
                   <button onClick={() => removeBookmark(bm.id)}
-                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-white/25 hover:text-red-400/70 transition-all">
+                    className="absolute top-1 right-1 sm:opacity-0 sm:group-hover:opacity-100 text-white/25 hover:text-red-400/70 active:text-red-400/70 transition-all">
                     <Trash2 className="w-3 h-3" />
                   </button>
                   <button onClick={() => startEdit(bm)}
-                    className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 text-white/25 hover:text-amber-400/70 transition-all">
+                    className="absolute top-1 left-1 sm:opacity-0 sm:group-hover:opacity-100 text-white/25 hover:text-amber-400/70 active:text-amber-400/70 transition-all">
                     <Pencil className="w-3 h-3" />
                   </button>
-                  <GripVertical className="absolute bottom-1 right-1 w-3 h-3 text-white/15 opacity-0 group-hover:opacity-100 transition-all cursor-grab" />
+                  <GripVertical className="absolute bottom-1 right-1 w-3 h-3 text-white/15 hidden sm:block sm:opacity-0 sm:group-hover:opacity-100 transition-all cursor-grab" />
                 </>
               )}
             </div>

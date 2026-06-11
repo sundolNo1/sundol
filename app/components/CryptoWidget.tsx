@@ -42,7 +42,7 @@ function CoinRow({ item }: { item: CoinItem }) {
       href={COIN_URLS[item.id]}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center justify-between py-2 px-1 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.04] rounded-lg transition-colors cursor-pointer"
+      className="flex items-center justify-between py-2 px-1 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.04] active:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
     >
       <div className="flex items-center gap-2 min-w-0">
         <span className="text-sm w-5 text-center text-white/30 flex-shrink-0 font-mono">

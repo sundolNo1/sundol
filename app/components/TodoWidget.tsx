@@ -129,7 +129,7 @@ export default function TodoWidget() {
               </span>
               <button
                 onClick={() => removeTodo(todo.id)}
-                className="opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400/60 transition-all flex-shrink-0"
+                className="sm:opacity-0 sm:group-hover:opacity-100 text-white/20 hover:text-red-400/60 active:text-red-400/60 transition-all flex-shrink-0"
               >
                 <X className="w-3 h-3" />
               </button>

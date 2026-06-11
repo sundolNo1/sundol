@@ -139,7 +139,7 @@ function FeedSettingsModal({
                     <span className="text-xs text-white/60 flex-1 truncate">{f.name}</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/[0.05] text-white/30">{f.category}</span>
                     <button onClick={() => onDeleteCustom(f.id)}
-                      className="text-white/20 hover:text-red-400/70 transition-colors opacity-0 group-hover:opacity-100">
+                      className="text-white/20 hover:text-red-400/70 active:text-red-400/70 transition-colors sm:opacity-0 sm:group-hover:opacity-100">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -277,7 +277,7 @@ export default function NewsWidget() {
           <div className="space-y-0.5 max-h-64 sm:max-h-80 overflow-y-auto pr-1">
             {filtered.map((item, i) => (
               <a key={i} href={item.link} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-white/[0.05] transition-colors group min-h-[52px]">
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-white/[0.05] active:bg-white/[0.08] transition-colors group min-h-[52px]">
                 <div className="flex-shrink-0 w-14 h-10 sm:w-16 sm:h-11 rounded-lg overflow-hidden bg-white/[0.05] flex items-center justify-center">
                   {item.image ? (
                     <img src={item.image} alt="" loading="lazy" decoding="async"
