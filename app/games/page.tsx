@@ -54,6 +54,16 @@ const GAMES: Game[] = [
     tags: ["싱글플레이", "퍼즐", "고전"],
     available: true,
   },
+  {
+    id: "galaga",
+    title: "갤러그",
+    description: "1981년 남코 슈팅 게임. 편대를 격파하고 보스 트랙터 빔을 피하세요.",
+    emoji: "👾",
+    href: "/galaga",
+    players: "1인",
+    tags: ["슈팅", "고전", "아케이드"],
+    available: true,
+  },
 ];
 
 export default function GamesPage() {
@@ -82,7 +92,7 @@ export default function GamesPage() {
         </div>
 
         {/* 플레이 가능한 게임 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
           {available.map((game, i) => (
             <Link
               key={game.id}
