@@ -34,6 +34,16 @@ const GAMES: Game[] = [
     tags: ["싱글플레이", "건설", "탐험"],
     available: true,
   },
+  {
+    id: "slot",
+    title: "체리마스터",
+    description: "복고풍 3릴 슬롯머신. 체리·레몬·포도·777을 맞추고 대박을 노려보세요.",
+    emoji: "🍒",
+    href: "/slot",
+    players: "1인",
+    tags: ["슬롯", "복고", "캐주얼"],
+    available: true,
+  },
 ];
 
 export default function GamesPage() {
