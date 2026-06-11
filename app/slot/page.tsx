@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 
 // ── Symbols ─────────────────────────────────────────────────
@@ -35,88 +35,108 @@ const BET_OPTS = [1, 5, 10, 50, 100];
 
 // ── Component ───────────────────────────────────────────────
 export default function SlotPage() {
-  const [rows, setRows]       = useState<Row3[]>([[0,0,0],[1,1,1],[2,2,2]]);
+  const [rows, setRows]         = useState<Row3[]>([[0,0,0],[1,1,1],[2,2,2]]);
   const [spinning, setSpinning] = useState([false, false, false]);
-  const [credits, setCredits] = useState(200);
-  const [bet, setBet]         = useState(10);
-  const [winAmt, setWinAmt]   = useState(0);
-  const [msg, setMsg]         = useState("행운을 빌어요! 🎰");
+  const [credits, setCredits]   = useState(200);
+  const [bet, setBet]           = useState(10);
+  const [winAmt, setWinAmt]     = useState(0);
+  const [msg, setMsg]           = useState("행운을 빌어요! 🎰");
   const [winFlash, setWinFlash] = useState(false);
-  const ivRefs  = useRef<ReturnType<typeof setInterval>[]>([]);
-  const tmRefs  = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const [autoSpin, setAutoSpin] = useState(false);
+  const [autoCount, setAutoCount] = useState(0); // spins done in auto mode
 
+  // Refs — keep latest values accessible inside async callbacks
+  const autoRef      = useRef(false);
+  const creditsRef   = useRef(200);
+  const betRef       = useRef(10);
+  const isSpinRef    = useRef(false); // true while any reel is spinning
+  const ivRefs       = useRef<ReturnType<typeof setInterval>[]>([]);
+  const tmRefs       = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => { creditsRef.current = credits; }, [credits]);
+  useEffect(() => { betRef.current = bet; }, [bet]);
+
+  // ── Core spin (reads from refs to avoid stale closures) ──
   const handleSpin = useCallback(() => {
-    if (spinning.some(Boolean)) return;
-    if (credits < bet) { setMsg("크레딧이 부족해요!"); return; }
+    if (isSpinRef.current) return;
+    if (creditsRef.current < betRef.current) {
+      setMsg("크레딧이 부족해요!");
+      autoRef.current = false;
+      setAutoSpin(false);
+      return;
+    }
 
-    setCredits(c => c - bet);
+    const currentBet = betRef.current;
+    isSpinRef.current = true;
+
+    setCredits(c => { const n = c - currentBet; creditsRef.current = n; return n; });
     setWinAmt(0);
     setWinFlash(false);
     setMsg("");
 
-    // Decide final results up-front
     const results: Row3[] = [randRow(), randRow(), randRow()];
-
     setSpinning([true, true, true]);
 
-    // Clear old intervals
     ivRefs.current.forEach(clearInterval);
     tmRefs.current.forEach(clearTimeout);
     ivRefs.current = [];
     tmRefs.current = [];
 
-    // Start rapid-cycle intervals for each reel
+    // Rapid-cycle intervals per reel
     [0, 1, 2].forEach(ri => {
       const iv = setInterval(() => {
-        setRows(prev => {
-          const next = [...prev] as Row3[];
-          next[ri] = randRow();
-          return next;
-        });
+        setRows(prev => { const n = [...prev] as Row3[]; n[ri] = randRow(); return n; });
       }, 55);
       ivRefs.current[ri] = iv;
     });
 
-    // Stop reels one-by-one
+    // Sequential reel stops
     const stops = [950, 1800, 2700];
     stops.forEach((delay, ri) => {
       const t = setTimeout(() => {
         clearInterval(ivRefs.current[ri]);
-        setRows(prev => {
-          const next = [...prev] as Row3[];
-          next[ri] = results[ri];
-          return next;
-        });
-        setSpinning(prev => {
-          const next = [...prev];
-          next[ri] = false;
-          return next;
-        });
+        setRows(prev => { const n = [...prev] as Row3[]; n[ri] = results[ri]; return n; });
+        setSpinning(prev => { const n = [...prev]; n[ri] = false; return n; });
 
-        // Evaluate after last reel
         if (ri === 2) {
-          const t2 = setTimeout(() => {
-            const [s0, s1, s2] = results.map(r => r[1]); // center row
-            let win = 0;
+          isSpinRef.current = false;
 
+          const t2 = setTimeout(() => {
+            // Evaluate center row
+            const [s0, s1, s2] = results.map(r => r[1]) as [SymId, SymId, SymId];
+            let win = 0;
             if (s0 === s1 && s1 === s2) {
-              win = SYMBOLS[s0].pay3 * bet;
+              win = SYMBOLS[s0].pay3 * currentBet;
             } else {
-              const cherries = [s0, s1, s2].filter(s => s === 0).length;
-              if (cherries >= 2)  win = SYMBOLS[0].pay2 * bet;
-              else if (s0 === 0)  win = 1 * bet;
+              const ch = [s0, s1, s2].filter(s => s === 0).length;
+              if (ch >= 2)      win = SYMBOLS[0].pay2 * currentBet;
+              else if (s0 === 0) win = 1 * currentBet;
             }
 
             setWinAmt(win);
             if (win > 0) {
-              setCredits(c => c + win);
+              setCredits(c => { const n = c + win; creditsRef.current = n; return n; });
               setWinFlash(true);
-              if (win >= 500 * bet)      setMsg("🎉 JACKPOT!!!");
-              else if (win >= 100 * bet) setMsg("🔥 BIG WIN!");
-              else if (win >= 20 * bet)  setMsg("✨ WIN!");
-              else                       setMsg("👍 당첨!");
+              if (win >= 500 * currentBet)      setMsg("🎉 JACKPOT!!!");
+              else if (win >= 100 * currentBet) setMsg("🔥 BIG WIN!");
+              else if (win >= 20 * currentBet)  setMsg("✨ WIN!");
+              else                              setMsg("👍 당첨!");
             } else {
-              setMsg("아쉽네요... 다시 도전!");
+              setMsg("아쉽네요...");
+            }
+
+            // Auto-spin continuation
+            if (autoRef.current) {
+              if (creditsRef.current >= betRef.current) {
+                setAutoCount(c => c + 1);
+                // Pause longer on wins so the user can see the result
+                const pause = win >= 20 * currentBet ? 1400 : 700;
+                tmRefs.current.push(setTimeout(handleSpin, pause));
+              } else {
+                autoRef.current = false;
+                setAutoSpin(false);
+                setMsg("크레딧 부족 — 오토스핀 종료");
+              }
             }
           }, 120);
           tmRefs.current.push(t2);
@@ -124,17 +144,32 @@ export default function SlotPage() {
       }, delay);
       tmRefs.current.push(t);
     });
-  }, [spinning, credits, bet]);
+  }, []); // stable — all state accessed via refs
+
+  // ── Auto-spin toggle ──────────────────────────────────────
+  const toggleAuto = useCallback(() => {
+    const next = !autoRef.current;
+    autoRef.current = next;
+    setAutoSpin(next);
+    if (next) {
+      setAutoCount(0);
+      if (!isSpinRef.current) handleSpin();
+    } else {
+      // Cancel any pending auto-spin timeout (intervals already cleared between spins)
+      tmRefs.current.forEach(clearTimeout);
+      tmRefs.current = [];
+    }
+  }, [handleSpin]);
 
   const handleRecharge = () => {
-    setCredits(c => c + 200);
+    setCredits(c => { const n = c + 200; creditsRef.current = n; return n; });
     setMsg("크레딧 200 충전 🎰");
     setWinAmt(0);
     setWinFlash(false);
   };
 
-  const isAny = spinning.some(Boolean);
-  const broke = credits < bet && !isAny;
+  const isAny  = spinning.some(Boolean);
+  const broke  = credits < bet && !isAny;
 
   return (
     <main className="min-h-screen bg-[#06090f] flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -164,6 +199,12 @@ export default function SlotPage() {
             <p className="text-[10px] tracking-[0.25em] text-white/20 uppercase">Credit</p>
             <p className="text-amber-300 text-2xl font-bold tabular-nums">{credits.toLocaleString()}</p>
           </div>
+          {autoSpin && (
+            <div className="text-center">
+              <p className="text-[10px] tracking-[0.25em] text-emerald-400/50 uppercase">Auto</p>
+              <p className="text-emerald-400 text-2xl font-bold tabular-nums">{autoCount}</p>
+            </div>
+          )}
           <div className="text-right">
             <p className="text-[10px] tracking-[0.25em] text-white/20 uppercase">Win</p>
             <p className={`text-2xl font-bold tabular-nums transition-colors duration-300 ${winAmt > 0 ? "text-green-400" : "text-white/15"}`}>
@@ -173,16 +214,18 @@ export default function SlotPage() {
         </div>
 
         {/* Machine body */}
-        <div className={`bg-gradient-to-b from-zinc-800/80 to-zinc-900/90 backdrop-blur-xl rounded-3xl p-5 border shadow-[0_8px_64px_rgba(0,0,0,0.7)] transition-all duration-300 ${winFlash ? "border-amber-400/40 shadow-[0_0_60px_rgba(251,191,36,0.15)]" : "border-white/[0.07]"}`}>
+        <div className={`bg-gradient-to-b from-zinc-800/80 to-zinc-900/90 backdrop-blur-xl rounded-3xl p-5 border shadow-[0_8px_64px_rgba(0,0,0,0.7)] transition-all duration-300 ${winFlash ? "border-amber-400/40 shadow-[0_0_60px_rgba(251,191,36,0.15)]" : autoSpin ? "border-emerald-500/20" : "border-white/[0.07]"}`}>
 
           {/* Status message */}
           <div className="h-7 flex items-center justify-center mb-3">
             <span className={`text-sm font-semibold tracking-wide ${
               msg.includes("WIN") || msg.includes("JACKPOT") || msg.includes("당첨")
                 ? "text-amber-300 animate-pulse"
-                : "text-white/25"
+                : autoSpin && !msg.includes("부족")
+                  ? "text-emerald-400/60"
+                  : "text-white/25"
             }`}>
-              {msg}
+              {autoSpin && !isAny && !msg ? "⟳ 자동 스핀 중..." : msg}
             </span>
           </div>
 
@@ -195,15 +238,11 @@ export default function SlotPage() {
                   winFlash && !spinning[ri] ? "border-amber-400/30" : "border-white/[0.07]"
                 }`}
               >
-                {/* Fade overlays */}
                 <div className="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/85 to-transparent z-10 pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/85 to-transparent z-10 pointer-events-none" />
-                {/* Win line band */}
                 <div className={`absolute inset-x-0 top-[80px] h-[80px] border-y z-10 pointer-events-none transition-all duration-300 ${
                   winFlash ? "border-amber-400/40 bg-amber-400/[0.06]" : "border-amber-400/[0.12] bg-transparent"
                 }`} />
-
-                {/* Symbol strip */}
                 <div className={`flex flex-col transition-[filter] duration-75 ${spinning[ri] ? "blur-[1.5px]" : ""}`}>
                   {rows[ri].map((sid, si) => (
                     <div
@@ -220,7 +259,6 @@ export default function SlotPage() {
             ))}
           </div>
 
-          {/* Win line label */}
           <p className="text-center text-white/10 text-[9px] tracking-[0.5em] uppercase mb-4">WIN LINE</p>
 
           {/* Bet presets */}
@@ -229,7 +267,7 @@ export default function SlotPage() {
               <button
                 key={b}
                 onClick={() => setBet(b)}
-                disabled={isAny}
+                disabled={isAny || autoSpin}
                 className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition-all disabled:opacity-30 border ${
                   bet === b
                     ? "bg-amber-400/15 border-amber-400/35 text-amber-300"
@@ -241,17 +279,31 @@ export default function SlotPage() {
             ))}
           </div>
 
-          {/* Spin button */}
-          <button
-            onClick={handleSpin}
-            disabled={isAny || credits < bet}
-            className="w-full py-[14px] rounded-2xl font-black text-xl tracking-[0.25em] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed
-              bg-gradient-to-b from-amber-400 to-orange-600 text-black
-              hover:from-amber-300 hover:to-orange-500 active:scale-[0.97]
-              shadow-[0_4px_28px_rgba(251,191,36,0.35)]"
-          >
-            {isAny ? "▷ ▷ ▷" : "SPIN"}
-          </button>
+          {/* Spin + Auto buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={handleSpin}
+              disabled={isAny || credits < bet || autoSpin}
+              className="flex-1 py-[14px] rounded-2xl font-black text-xl tracking-[0.25em] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed
+                bg-gradient-to-b from-amber-400 to-orange-600 text-black
+                hover:from-amber-300 hover:to-orange-500 active:scale-[0.97]
+                shadow-[0_4px_28px_rgba(251,191,36,0.35)]"
+            >
+              {isAny && !autoSpin ? "▷ ▷ ▷" : "SPIN"}
+            </button>
+
+            <button
+              onClick={toggleAuto}
+              disabled={credits < bet && !autoSpin}
+              className={`w-[72px] py-[14px] rounded-2xl font-black text-sm tracking-wider transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed border ${
+                autoSpin
+                  ? "bg-emerald-500/20 border-emerald-400/50 text-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.2)] animate-pulse"
+                  : "bg-white/[0.04] border-white/[0.08] text-white/40 hover:text-white/70 hover:bg-white/[0.07]"
+              }`}
+            >
+              {autoSpin ? "STOP" : "AUTO"}
+            </button>
+          </div>
         </div>
 
         {/* Recharge */}
@@ -277,9 +329,7 @@ export default function SlotPage() {
               </div>
             ))}
             <div className="border-t border-white/[0.05] pt-2 flex items-center justify-between">
-              <span className="text-[22px] leading-none">
-                🍒🍒<span className="text-white/15">—</span>
-              </span>
+              <span className="text-[22px] leading-none">🍒🍒<span className="text-white/15">—</span></span>
               <span className="text-amber-300/50 text-xs font-mono">× 2</span>
             </div>
           </div>
