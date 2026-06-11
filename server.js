@@ -15,7 +15,12 @@ function genRoomId() {
 
 app.prepare().then(() => {
   const server = createServer((req, res) => handle(req, res));
-  const io = new Server(server);
+  const io = new Server(server, {
+    cors: {
+      origin: [/\.vercel\.app$/, /localhost/],
+      methods: ["GET", "POST"],
+    },
+  });
 
   function broadcastState(room) {
     for (const player of room.players) {
