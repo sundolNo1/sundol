@@ -44,6 +44,16 @@ const GAMES: Game[] = [
     tags: ["슬롯", "복고", "캐주얼"],
     available: true,
   },
+  {
+    id: "tetris",
+    title: "테트리스",
+    description: "고전 테트리스. 7가지 블록을 쌓아 줄을 없애고 최고 점수를 노려보세요.",
+    emoji: "🟦",
+    href: "/tetris",
+    players: "1인",
+    tags: ["싱글플레이", "퍼즐", "고전"],
+    available: true,
+  },
 ];
 
 export default function GamesPage() {
@@ -72,7 +82,7 @@ export default function GamesPage() {
         </div>
 
         {/* 플레이 가능한 게임 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {available.map((game, i) => (
             <Link
               key={game.id}
