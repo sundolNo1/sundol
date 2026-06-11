@@ -33,6 +33,14 @@ function randRow(): Row3 {
 
 const BET_OPTS = [1, 5, 10, 50, 100];
 
+// ── Speed presets ────────────────────────────────────────────
+const SPEEDS = [
+  { id: 0, label: "느림",  iv: 90,  stops: [1400, 2600, 3800] as [number,number,number], pause: 1200, winPause: 2000 },
+  { id: 1, label: "보통",  iv: 55,  stops: [950,  1800, 2700] as [number,number,number], pause:  700, winPause: 1400 },
+  { id: 2, label: "빠름",  iv: 30,  stops: [500,  900,  1300] as [number,number,number], pause:  350, winPause:  700 },
+  { id: 3, label: "터보",  iv: 12,  stops: [220,  400,   580] as [number,number,number], pause:  120, winPause:  350 },
+] as const;
+
 // ── Component ───────────────────────────────────────────────
 export default function SlotPage() {
   const [rows, setRows]         = useState<Row3[]>([[0,0,0],[1,1,1],[2,2,2]]);
@@ -43,18 +51,21 @@ export default function SlotPage() {
   const [msg, setMsg]           = useState("행운을 빌어요! 🎰");
   const [winFlash, setWinFlash] = useState(false);
   const [autoSpin, setAutoSpin] = useState(false);
-  const [autoCount, setAutoCount] = useState(0); // spins done in auto mode
+  const [autoCount, setAutoCount] = useState(0);
+  const [speed, setSpeed]       = useState(1); // index into SPEEDS
 
   // Refs — keep latest values accessible inside async callbacks
   const autoRef      = useRef(false);
   const creditsRef   = useRef(200);
   const betRef       = useRef(10);
-  const isSpinRef    = useRef(false); // true while any reel is spinning
+  const speedRef     = useRef(1);
+  const isSpinRef    = useRef(false);
   const ivRefs       = useRef<ReturnType<typeof setInterval>[]>([]);
   const tmRefs       = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => { creditsRef.current = credits; }, [credits]);
   useEffect(() => { betRef.current = bet; }, [bet]);
+  useEffect(() => { speedRef.current = speed; }, [speed]);
 
   // ── Core spin (reads from refs to avoid stale closures) ──
   const handleSpin = useCallback(() => {
@@ -82,17 +93,19 @@ export default function SlotPage() {
     ivRefs.current = [];
     tmRefs.current = [];
 
+    // Capture speed config at spin-start
+    const spd = SPEEDS[speedRef.current];
+
     // Rapid-cycle intervals per reel
     [0, 1, 2].forEach(ri => {
       const iv = setInterval(() => {
         setRows(prev => { const n = [...prev] as Row3[]; n[ri] = randRow(); return n; });
-      }, 55);
+      }, spd.iv);
       ivRefs.current[ri] = iv;
     });
 
     // Sequential reel stops
-    const stops = [950, 1800, 2700];
-    stops.forEach((delay, ri) => {
+    spd.stops.forEach((delay, ri) => {
       const t = setTimeout(() => {
         clearInterval(ivRefs.current[ri]);
         setRows(prev => { const n = [...prev] as Row3[]; n[ri] = results[ri]; return n; });
@@ -129,9 +142,9 @@ export default function SlotPage() {
             if (autoRef.current) {
               if (creditsRef.current >= betRef.current) {
                 setAutoCount(c => c + 1);
-                // Pause longer on wins so the user can see the result
-                const pause = win >= 20 * currentBet ? 1400 : 700;
-                tmRefs.current.push(setTimeout(handleSpin, pause));
+                const { pause, winPause } = SPEEDS[speedRef.current];
+                const delay = win >= 20 * currentBet ? winPause : pause;
+                tmRefs.current.push(setTimeout(handleSpin, delay));
               } else {
                 autoRef.current = false;
                 setAutoSpin(false);
@@ -259,7 +272,25 @@ export default function SlotPage() {
             ))}
           </div>
 
-          <p className="text-center text-white/10 text-[9px] tracking-[0.5em] uppercase mb-4">WIN LINE</p>
+          <p className="text-center text-white/10 text-[9px] tracking-[0.5em] uppercase mb-3">WIN LINE</p>
+
+          {/* Speed presets */}
+          <div className="flex gap-1.5 justify-center mb-3">
+            {SPEEDS.map(s => (
+              <button
+                key={s.id}
+                onClick={() => { setSpeed(s.id); speedRef.current = s.id; }}
+                disabled={isAny}
+                className={`flex-1 py-1 rounded-lg text-[11px] font-bold transition-all disabled:opacity-40 border ${
+                  speed === s.id
+                    ? "bg-sky-400/15 border-sky-400/35 text-sky-300"
+                    : "bg-white/[0.03] border-white/[0.06] text-white/25 hover:text-white/50 hover:bg-white/[0.05]"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
 
           {/* Bet presets */}
           <div className="flex gap-1.5 justify-center mb-3">
