@@ -11,7 +11,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Deploy to Vercel
-        run: npx vercel --prod --yes
+        run: |
+          DEPLOY_URL=$(npx vercel --prod --yes 2>&1 | grep -o 'https://[^ ]*' | tail -1)
+          echo "Deployed: $DEPLOY_URL"
+          npx vercel alias set "$DEPLOY_URL" sundol.vercel.app
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_XkcSojL4wVy54NWOdbX6NJNk
