@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Plus, Trash2, GripVertical, Pencil, Check, X, Settings2, ChevronUp, ChevronDown } from "lucide-react";
 
@@ -65,29 +65,11 @@ export default function BookmarksWidget() {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  // 모바일 터치 드래그 상태
-  const gridRef = useRef<HTMLDivElement>(null);
-  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const touchDragIdxRef = useRef<number | null>(null); // 비동기 없이 즉시 참조
-  const [touchDragIdx, setTouchDragIdx] = useState<number | null>(null);
-  const [touchOverIdx, setTouchOverIdx] = useState<number | null>(null);
-
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
   }, [bookmarks]);
-
-  // 터치 드래그 중 페이지 스크롤 방지 (passive: false 필요)
-  useEffect(() => {
-    const el = gridRef.current;
-    if (!el) return;
-    const prevent = (e: TouchEvent) => {
-      if (touchDragIdxRef.current !== null) e.preventDefault();
-    };
-    el.addEventListener("touchmove", prevent, { passive: false });
-    return () => el.removeEventListener("touchmove", prevent);
-  }, []);
 
   const addBookmark = () => {
     if (!form.title || !form.url) return;
@@ -138,26 +120,6 @@ export default function BookmarksWidget() {
 
   const handleDragEnd = () => { setDragIndex(null); setDragOverIndex(null); };
 
-  // 터치 드래그 핸들러
-  const handleTouchStart = (index: number) => {
-    if (editingId) return;
-    touchDragIdxRef.current = index;
-    setTouchDragIdx(index);
-  };
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (touchDragIdxRef.current === null) return;
-    const touch = e.touches[0];
-    let best = -1, minD = Infinity;
-    itemRefs.current.forEach((ref, i) => {
-      if (!ref) return;
-      const r = ref.getBoundingClientRect();
-      const d = Math.hypot(touch.clientX - (r.left + r.width / 2), touch.clientY - (r.top + r.height / 2));
-      if (d < minD) { minD = d; best = i; }
-    });
-    setTouchOverIdx(best >= 0 ? best : null);
-  }, []);
-
   // 모바일 관리 모달 함수
   const moveItem = (index: number, dir: -1 | 1) => {
     const next = [...bookmarks];
@@ -178,23 +140,6 @@ export default function BookmarksWidget() {
     setBookmarks((prev) => prev.map((b) => b.id === modalEditingId ? { ...b, title: modalEditForm.title, url, emoji: modalEditForm.emoji } : b));
     setModalEditingId(null);
   };
-
-  const handleTouchEnd = useCallback(() => {
-    const from = touchDragIdxRef.current;
-    setTouchOverIdx((to) => {
-      if (from !== null && to !== null && from !== to) {
-        setBookmarks((prev) => {
-          const next = [...prev];
-          const [item] = next.splice(from, 1);
-          next.splice(to, 0, item);
-          return next;
-        });
-      }
-      return null;
-    });
-    touchDragIdxRef.current = null;
-    setTouchDragIdx(null);
-  }, []);
 
   return (
     <>
@@ -268,29 +213,20 @@ export default function BookmarksWidget() {
         </div>
       )}
 
-      <div
-        ref={gridRef}
-        className="grid grid-cols-4 sm:grid-cols-3 md:grid-cols-4 gap-1 sm:gap-2"
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
+      <div className="grid grid-cols-4 sm:grid-cols-3 md:grid-cols-4 gap-1 sm:gap-2">
         {bookmarks.map((bm, index) => {
           const favicon = mounted ? getFavicon(bm.url) : null;
-          const isDragging = dragIndex === index || touchDragIdx === index;
-          const isOver =
-            (dragOverIndex === index && dragIndex !== index) ||
-            (touchOverIdx === index && touchDragIdx !== null && touchDragIdx !== index);
+          const isDragging = dragIndex === index;
+          const isOver = dragOverIndex === index && dragIndex !== index;
           const isEditing = editingId === bm.id;
           return (
             <div
               key={bm.id}
-              ref={(el) => { itemRefs.current[index] = el; }}
               draggable={!isEditing}
               onDragStart={() => !isEditing && handleDragStart(index)}
               onDragOver={(e) => handleDragOver(e, index)}
               onDrop={(e) => handleDrop(e, index)}
               onDragEnd={handleDragEnd}
-              onTouchStart={() => handleTouchStart(index)}
               className={`group relative transition-all ${
                 isDragging ? "opacity-30 scale-95" : "opacity-100 scale-100"
               } ${isOver ? "ring-1 ring-amber-400/50 rounded-xl bg-amber-400/[0.04]" : ""}`}
@@ -342,14 +278,14 @@ export default function BookmarksWidget() {
                     <span className="text-xs text-white/40 group-hover:text-white/70 truncate w-full text-center transition-colors">{bm.title}</span>
                   </a>
                   <button onClick={() => removeBookmark(bm.id)}
-                    className="absolute top-1 right-1 sm:opacity-0 sm:group-hover:opacity-100 text-white/25 hover:text-red-400/70 active:text-red-400/70 transition-all">
+                    className="absolute top-1 right-1 hidden sm:opacity-0 sm:group-hover:opacity-100 sm:flex text-white/25 hover:text-red-400/70 transition-all">
                     <Trash2 className="w-3 h-3" />
                   </button>
                   <button onClick={() => startEdit(bm)}
-                    className="absolute top-1 left-1 sm:opacity-0 sm:group-hover:opacity-100 text-white/25 hover:text-amber-400/70 active:text-amber-400/70 transition-all">
+                    className="absolute top-1 left-1 hidden sm:opacity-0 sm:group-hover:opacity-100 sm:flex text-white/25 hover:text-amber-400/70 transition-all">
                     <Pencil className="w-3 h-3" />
                   </button>
-                  <GripVertical className="absolute bottom-1 right-1 w-3 h-3 text-white/20 sm:opacity-0 sm:group-hover:opacity-100 transition-all cursor-grab" />
+                  <GripVertical className="absolute bottom-1 right-1 w-3 h-3 text-white/20 hidden sm:opacity-0 sm:group-hover:opacity-100 sm:block transition-all cursor-grab" />
                 </>
               )}
             </div>
