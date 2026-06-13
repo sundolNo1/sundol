@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Plus, Trash2, GripVertical, Pencil, Check, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Plus, Trash2, GripVertical, Pencil, Check, X, Settings2, ChevronUp, ChevronDown } from "lucide-react";
 
 interface Bookmark {
   id: string;
@@ -56,6 +57,9 @@ export default function BookmarksWidget() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ title: "", url: "", emoji: "🌐" });
   const [mounted, setMounted] = useState(false);
+  const [showManageModal, setShowManageModal] = useState(false);
+  const [modalEditingId, setModalEditingId] = useState<string | null>(null);
+  const [modalEditForm, setModalEditForm] = useState({ title: "", url: "", emoji: "🌐" });
 
   // 데스크탑 드래그 상태
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -154,6 +158,27 @@ export default function BookmarksWidget() {
     setTouchOverIdx(best >= 0 ? best : null);
   }, []);
 
+  // 모바일 관리 모달 함수
+  const moveItem = (index: number, dir: -1 | 1) => {
+    const next = [...bookmarks];
+    const target = index + dir;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    setBookmarks(next);
+  };
+
+  const startModalEdit = (bm: Bookmark) => {
+    setModalEditingId(bm.id);
+    setModalEditForm({ title: bm.title, url: bm.url, emoji: bm.emoji });
+  };
+
+  const saveModalEdit = () => {
+    if (!modalEditForm.title || !modalEditForm.url) return;
+    const url = modalEditForm.url.startsWith("http") ? modalEditForm.url : `https://${modalEditForm.url}`;
+    setBookmarks((prev) => prev.map((b) => b.id === modalEditingId ? { ...b, title: modalEditForm.title, url, emoji: modalEditForm.emoji } : b));
+    setModalEditingId(null);
+  };
+
   const handleTouchEnd = useCallback(() => {
     const from = touchDragIdxRef.current;
     setTouchOverIdx((to) => {
@@ -172,17 +197,27 @@ export default function BookmarksWidget() {
   }, []);
 
   return (
+    <>
     <div className="relative overflow-hidden bg-white/[0.05] backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-violet-400/20 hover:shadow-[0_0_40px_rgba(167,139,250,0.10)] transition-all">
       <div style={{ height: 2, background: "linear-gradient(to right, transparent, rgba(167,139,250,0.7), rgba(139,92,246,0.5), transparent)" }} className="absolute top-0 inset-x-0 pointer-events-none" />
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">즐겨찾기</h2>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="text-white/25 hover:text-amber-400/80 transition-colors"
-          title="추가"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowManageModal(true)}
+            className="sm:hidden text-white/25 hover:text-violet-400/80 active:text-violet-400/80 transition-colors"
+            title="관리"
+          >
+            <Settings2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="text-white/25 hover:text-amber-400/80 transition-colors"
+            title="추가"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -322,5 +357,116 @@ export default function BookmarksWidget() {
         })}
       </div>
     </div>
+
+    {showManageModal && mounted && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex flex-col justify-end"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowManageModal(false); setModalEditingId(null); } }}
+        >
+          <div
+            className="w-full rounded-t-2xl overflow-hidden flex flex-col"
+            style={{ background: "linear-gradient(135deg, rgba(14,14,22,0.99), rgba(8,8,16,0.99))", border: "1px solid rgba(255,255,255,0.08)", borderBottom: "none", maxHeight: "80vh" }}
+          >
+            <div style={{ height: 2, background: "linear-gradient(to right, transparent, rgba(167,139,250,0.7), rgba(139,92,246,0.5), transparent)", flexShrink: 0 }} />
+            <div className="flex items-center justify-between px-5 pt-4 pb-3 flex-shrink-0">
+              <span className="text-sm font-semibold text-white/70">즐겨찾기 관리</span>
+              <button
+                onClick={() => { setShowManageModal(false); setModalEditingId(null); }}
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto px-4 pb-8 space-y-2">
+              {bookmarks.map((bm, index) => {
+                const favicon = getFavicon(bm.url);
+                const isModalEditing = modalEditingId === bm.id;
+                return (
+                  <div key={bm.id} className="rounded-xl border border-white/[0.07] overflow-hidden" style={{ background: "rgba(255,255,255,0.04)" }}>
+                    {isModalEditing ? (
+                      <div className="p-3 space-y-2">
+                        <div className="flex gap-1 flex-wrap">
+                          {EMOJIS.map((e) => (
+                            <button key={e} onClick={() => setModalEditForm({ ...modalEditForm, emoji: e })}
+                              className={`text-base p-1 rounded transition-colors ${modalEditForm.emoji === e ? "bg-amber-400/20 ring-1 ring-amber-400/50" : "hover:bg-white/[0.08]"}`}>
+                              {e}
+                            </button>
+                          ))}
+                        </div>
+                        <input
+                          type="text"
+                          value={modalEditForm.title}
+                          onChange={(e) => setModalEditForm({ ...modalEditForm, title: e.target.value })}
+                          placeholder="이름"
+                          className="w-full bg-white/[0.05] text-[#f0ead6] text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-amber-400/40 placeholder-white/20"
+                        />
+                        <input
+                          type="text"
+                          value={modalEditForm.url}
+                          onChange={(e) => setModalEditForm({ ...modalEditForm, url: e.target.value })}
+                          placeholder="URL"
+                          className="w-full bg-white/[0.05] text-[#f0ead6] text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-amber-400/40 placeholder-white/20"
+                        />
+                        <div className="flex gap-2">
+                          <button onClick={saveModalEdit}
+                            className="flex-1 flex items-center justify-center gap-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-sm rounded-lg py-2 transition-colors border border-amber-400/20">
+                            <Check className="w-3.5 h-3.5" /> 저장
+                          </button>
+                          <button onClick={() => setModalEditingId(null)}
+                            className="flex-1 flex items-center justify-center bg-white/[0.05] hover:bg-white/[0.08] text-white/40 text-sm rounded-lg py-2 transition-colors">
+                            취소
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 px-3 py-2.5">
+                        <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+                          {favicon ? (
+                            <img src={favicon} alt={bm.title} className="w-6 h-6 rounded opacity-80"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                                const next = (e.target as HTMLImageElement).nextSibling as HTMLElement | null;
+                                if (next) next.textContent = bm.emoji;
+                              }} />
+                          ) : null}
+                          <span className={`text-xl ${favicon ? "hidden" : ""}`}>{bm.emoji}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-white/70 truncate">{bm.title}</p>
+                          <p className="text-xs text-white/25 truncate">{bm.url}</p>
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <div className="flex flex-col gap-0.5">
+                            <button onClick={() => moveItem(index, -1)} disabled={index === 0}
+                              className="w-6 h-5 flex items-center justify-center text-white/25 hover:text-white/60 active:text-white/60 disabled:opacity-20 disabled:cursor-not-allowed transition-colors">
+                              <ChevronUp className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => moveItem(index, 1)} disabled={index === bookmarks.length - 1}
+                              className="w-6 h-5 flex items-center justify-center text-white/25 hover:text-white/60 active:text-white/60 disabled:opacity-20 disabled:cursor-not-allowed transition-colors">
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <button onClick={() => startModalEdit(bm)}
+                            className="w-7 h-7 flex items-center justify-center text-white/25 hover:text-amber-400/80 active:text-amber-400/80 transition-colors rounded-lg hover:bg-white/[0.05]">
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => removeBookmark(bm.id)}
+                            className="w-7 h-7 flex items-center justify-center text-white/25 hover:text-red-400/70 active:text-red-400/70 transition-colors rounded-lg hover:bg-white/[0.05]">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
   );
 }
