@@ -6,8 +6,8 @@ export async function GET(request: Request) {
   const q = searchParams.get("q")?.trim();
   if (!q) return NextResponse.json({ results: [] });
 
-  // 한글 포함 → 정적 Korean stocks 테이블에서 검색
-  if (/[ㄱ-ㅎ가-힣]/.test(q)) {
+  // 한글 포함 또는 숫자만(종목코드) → 정적 Korean stocks 테이블에서 검색
+  if (/[ㄱ-ㅎ가-힣]/.test(q) || /^\d+$/.test(q)) {
     const hits = searchKoreanStocks(q);
     const results = hits.map(s => ({
       symbol: s.symbol,
