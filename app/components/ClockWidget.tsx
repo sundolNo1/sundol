@@ -19,8 +19,9 @@ const WORLD_CITIES = [
   { name: "모스크바",  tz: "Europe/Moscow",        flag: "🇷🇺" },
 ];
 
-function getCityTime(tz: string, now: Date) {
-  return now.toLocaleTimeString("ko-KR", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false });
+function getCityTime(tz: string, now: Date, hour12: boolean) {
+  const raw = now.toLocaleTimeString("ko-KR", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12 });
+  return raw;
 }
 function getCityDate(tz: string, now: Date) {
   return now.toLocaleDateString("ko-KR", { timeZone: tz, month: "short", day: "numeric", weekday: "short" });
@@ -72,7 +73,7 @@ function MiniCalendar({ today }: { today: Date }) {
   );
 }
 
-function WorldClock({ now }: { now: Date }) {
+function WorldClock({ now, hour12 }: { now: Date; hour12: boolean }) {
   const [query, setQuery] = useState("");
   const filtered = WORLD_CITIES.filter(c => c.name.includes(query));
 
@@ -97,7 +98,7 @@ function WorldClock({ now }: { now: Date }) {
               <span className="text-[10px] text-white/25">{getCityDate(city.tz, now)}</span>
             </div>
             <span className="text-sm font-semibold tabular-nums" style={{ color: "#fcd34d" }}>
-              {getCityTime(city.tz, now)}
+              {getCityTime(city.tz, now, hour12)}
             </span>
           </div>
         ))}
@@ -106,13 +107,19 @@ function WorldClock({ now }: { now: Date }) {
   );
 }
 
+const HOUR12_KEY = "clock_hour12";
+
 export default function ClockWidget() {
   const [time, setTime] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
   const [tab, setTab] = useState<"calendar" | "world">("calendar");
+  const [hour12, setHour12] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+    setHour12(localStorage.getItem(HOUR12_KEY) === "true");
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -125,27 +132,56 @@ export default function ClockWidget() {
     return () => document.removeEventListener("keydown", onKey);
   }, [showModal, onKey]);
 
+  const toggleHour12 = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setHour12(prev => {
+      const next = !prev;
+      localStorage.setItem(HOUR12_KEY, String(next));
+      return next;
+    });
+  };
+
   const pad = (n: number) => String(n).padStart(2, "0");
-  const hours = pad(time.getHours());
+  const rawHours = time.getHours();
+  const displayHours = hour12 ? (rawHours % 12 || 12) : rawHours;
+  const ampm = hour12 ? (rawHours < 12 ? "AM" : "PM") : null;
+  const hours = pad(displayHours);
   const minutes = pad(time.getMinutes());
   const seconds = pad(time.getSeconds());
   const dateStr = time.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
 
   return (
     <>
-      <button
+      <div
         onClick={() => setShowModal(true)}
-        className="w-full relative overflow-hidden bg-white/[0.05] backdrop-blur-2xl rounded-2xl p-4 sm:p-6 md:p-8 text-center border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-amber-400/30 hover:bg-white/[0.07] hover:shadow-[0_0_40px_rgba(251,191,36,0.12)] transition-all"
+        className="w-full relative overflow-hidden bg-white/[0.05] backdrop-blur-2xl rounded-2xl p-4 sm:p-6 md:p-8 text-center border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-amber-400/30 hover:bg-white/[0.07] hover:shadow-[0_0_40px_rgba(251,191,36,0.12)] transition-all cursor-pointer select-none"
       >
         <div style={{ height: 2, background: "linear-gradient(to right, transparent, rgba(251,191,36,0.7), rgba(245,158,11,0.5), transparent)" }} className="absolute top-0 inset-x-0 pointer-events-none" />
+
         <div className="flex items-baseline justify-center">
           <span className="text-3xl sm:text-5xl md:text-7xl font-thin tracking-[0.12em] text-[#f0ead6]">{hours}</span>
           <span className="text-2xl sm:text-4xl md:text-5xl font-thin text-amber-400/50 animate-pulse mx-1 sm:mx-1.5 mb-1">:</span>
           <span className="text-3xl sm:text-5xl md:text-7xl font-thin tracking-[0.12em] text-[#f0ead6]">{minutes}</span>
           <span className="text-base sm:text-xl md:text-2xl font-thin text-white/20 ml-1.5 sm:ml-2 mb-1">:{seconds}</span>
+          {ampm && (
+            <span className="text-xs sm:text-sm font-medium text-white/35 ml-2 self-end mb-1.5">{ampm}</span>
+          )}
         </div>
         <div className="mt-2 sm:mt-4 text-white/30 text-[10px] sm:text-xs tracking-widest uppercase">{dateStr}</div>
-      </button>
+
+        {/* 12h / 24h 토글 */}
+        {mounted && (
+          <button
+            onClick={toggleHour12}
+            className="absolute bottom-3 right-3 text-[10px] tabular-nums font-semibold px-1.5 py-0.5 rounded-md transition-all hover:scale-105"
+            style={hour12
+              ? { color: "#fbbf24", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.25)" }
+              : { color: "rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+          >
+            {hour12 ? "12h" : "24h"}
+          </button>
+        )}
+      </div>
 
       {showModal && mounted && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
@@ -174,7 +210,7 @@ export default function ClockWidget() {
                 </button>
               </div>
 
-              {tab === "calendar" ? <MiniCalendar today={time} /> : <WorldClock now={time} />}
+              {tab === "calendar" ? <MiniCalendar today={time} /> : <WorldClock now={time} hour12={hour12} />}
             </div>
           </div>
         </div>,
