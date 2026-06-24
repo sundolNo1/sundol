@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Check, X } from "lucide-react";
+import { Plus, Check, X, GripVertical } from "lucide-react";
 
 interface Todo {
   id: string;
@@ -23,6 +23,8 @@ export default function TodoWidget() {
   });
   const [input, setInput] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "done">("all");
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem(TODOS_KEY, JSON.stringify(todos));
@@ -43,7 +45,37 @@ export default function TodoWidget() {
 
   const clearDone = () => setTodos((prev) => prev.filter((t) => !t.done));
 
-  const doneCount = todos.filter((t) => t.done).length;
+  // 드래그 핸들러
+  const onDragStart = (e: React.DragEvent, id: string) => {
+    setDragId(id);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const onDragOver = (e: React.DragEvent, id: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (id !== dragId) setOverId(id);
+  };
+
+  const onDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!dragId || dragId === targetId) { setDragId(null); setOverId(null); return; }
+    setTodos(prev => {
+      const arr = [...prev];
+      const from = arr.findIndex(t => t.id === dragId);
+      const to   = arr.findIndex(t => t.id === targetId);
+      if (from < 0 || to < 0) return prev;
+      const [item] = arr.splice(from, 1);
+      arr.splice(to, 0, item);
+      return arr;
+    });
+    setDragId(null);
+    setOverId(null);
+  };
+
+  const onDragEnd = () => { setDragId(null); setOverId(null); };
+
+  const doneCount   = todos.filter((t) => t.done).length;
   const activeCount = todos.filter((t) => !t.done).length;
 
   const filtered = todos.filter((t) =>
@@ -109,8 +141,24 @@ export default function TodoWidget() {
           filtered.map((todo) => (
             <div
               key={todo.id}
-              className="group flex items-center gap-2.5 py-2 px-1.5 rounded-lg hover:bg-white/[0.04] transition-colors"
+              draggable
+              onDragStart={e => onDragStart(e, todo.id)}
+              onDragOver={e  => onDragOver(e, todo.id)}
+              onDrop={e      => onDrop(e, todo.id)}
+              onDragEnd={onDragEnd}
+              className={`group flex items-center gap-2 py-2 px-1.5 rounded-lg transition-all duration-150 ${
+                dragId === todo.id
+                  ? "opacity-40 scale-[0.98]"
+                  : overId === todo.id
+                  ? "bg-amber-400/[0.07] ring-1 ring-amber-400/25"
+                  : "hover:bg-white/[0.04]"
+              }`}
             >
+              {/* 드래그 핸들 */}
+              <GripVertical
+                className="w-3.5 h-3.5 flex-shrink-0 text-white/15 group-hover:text-white/35 transition-colors cursor-grab active:cursor-grabbing"
+              />
+
               <button
                 onClick={() => toggleTodo(todo.id)}
                 className={`w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center transition-all ${
@@ -121,6 +169,7 @@ export default function TodoWidget() {
               >
                 {todo.done && <Check className="w-2.5 h-2.5 text-amber-300" />}
               </button>
+
               <span
                 className={`flex-1 text-sm transition-colors ${
                   todo.done ? "line-through text-white/20" : "text-white/60"
@@ -128,6 +177,7 @@ export default function TodoWidget() {
               >
                 {todo.text}
               </span>
+
               <button
                 onClick={() => removeTodo(todo.id)}
                 className="sm:opacity-0 sm:group-hover:opacity-100 text-white/20 hover:text-red-400/60 active:text-red-400/60 transition-all flex-shrink-0"
