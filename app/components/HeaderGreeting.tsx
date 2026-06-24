@@ -56,10 +56,10 @@ export default function HeaderGreeting() {
       {/* 날짜 + 인사말 */}
       <div className="mt-2 sm:mt-3 space-y-1">
         {dateStr && (
-          <p className="text-white/35 text-[11px] sm:text-xs tracking-[0.2em]">{dateStr}</p>
+          <p className="text-(--t3) text-[11px] sm:text-xs tracking-[0.2em]">{dateStr}</p>
         )}
         {greeting && (
-          <p className="text-white/20 text-[10px] sm:text-[11px] tracking-[0.25em] uppercase">
+          <p className="text-(--t5) text-[10px] sm:text-[11px] tracking-[0.25em] uppercase">
             {greeting}
           </p>
         )}

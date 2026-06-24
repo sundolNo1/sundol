@@ -23,17 +23,17 @@ function RateRow({ rate }: { rate: RateItem }) {
       href={`https://finance.naver.com/marketindex/exchangeDetail.naver?marketindexCd=FX_${rate.code}KRW`}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center justify-between px-1 py-2 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.04] active:bg-white/[0.06] rounded-lg transition-colors group cursor-pointer"
+      className="flex items-center justify-between px-1 py-2 border-b border-(--rim) last:border-0 hover:bg-(--surface) active:bg-(--surface-2) rounded-lg transition-colors group cursor-pointer"
     >
       <div className="flex items-center gap-2 min-w-0">
         <span className="text-base flex-shrink-0">{rate.flag}</span>
-        <span className="text-xs sm:text-sm text-white/60 group-hover:text-white/80 transition-colors truncate">{rate.name}</span>
+        <span className="text-xs sm:text-sm text-(--t2) group-hover:text-(--t1) transition-colors truncate">{rate.name}</span>
       </div>
       <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-        <span className="text-xs sm:text-sm font-semibold tabular-nums text-white/80">
+        <span className="text-xs sm:text-sm font-semibold tabular-nums text-(--t1)">
           {rate.krw.toLocaleString()}
         </span>
-        <span className="text-[10px] text-white/25">원</span>
+        <span className="text-[10px] text-(--t4)">원</span>
       </div>
     </a>
   );
@@ -118,10 +118,10 @@ function SearchModal({ onClose }: { onClose: () => void }) {
 
         <div className="p-5">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-semibold text-white/70">환율 검색</span>
+            <span className="text-sm font-semibold text-(--t1)">환율 검색</span>
             <button
               onClick={onClose}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-colors"
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-(--t4) hover:text-(--t1) hover:bg-(--surface-2) transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -129,7 +129,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
 
           {/* 통화 검색 */}
           <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-(--t4)" />
             <input
               type="text"
               value={query}
@@ -142,37 +142,37 @@ function SearchModal({ onClose }: { onClose: () => void }) {
               }}
               placeholder="통화 코드 또는 이름 (예: USD, 달러)"
               autoFocus
-              className="w-full bg-white/[0.05] text-[#f0ead6] text-sm rounded-xl pl-8 pr-3 py-2.5 outline-none focus:ring-1 focus:ring-amber-400/40 placeholder-white/20 border border-white/[0.06]"
+              className="w-full bg-(--surface) text-(--foreground) text-sm rounded-xl pl-8 pr-3 py-2.5 outline-none focus:ring-1 focus:ring-amber-400/40 placeholder-(--t5) border border-(--rim)"
             />
           </div>
 
           {/* 통화 목록 */}
-          <div className="max-h-40 overflow-y-auto rounded-xl border border-white/[0.06] mb-4">
+          <div className="max-h-40 overflow-y-auto rounded-xl border border-(--rim) mb-4">
             {(query ? filtered : SUPPORTED).map((c) => (
               <button
                 key={c.code}
                 onClick={() => search(c.code)}
-                className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm hover:bg-white/[0.06] transition-colors border-b border-white/[0.04] last:border-0"
+                className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm hover:bg-(--surface-2) transition-colors border-b border-(--rim) last:border-0"
               >
                 <span className="text-base flex-shrink-0">{c.flag}</span>
-                <span className="text-white/60">{c.name}</span>
-                <span className="text-white/25 text-xs ml-auto">{c.code}</span>
+                <span className="text-(--t2)">{c.name}</span>
+                <span className="text-(--t4) text-xs ml-auto">{c.code}</span>
               </button>
             ))}
             {query && filtered.length === 0 && (
-              <p className="text-white/25 text-xs text-center py-4">검색 결과 없음</p>
+              <p className="text-(--t4) text-xs text-center py-4">검색 결과 없음</p>
             )}
           </div>
 
           {/* 변환 결과 */}
           {searching && (
-            <div className="animate-pulse h-14 bg-white/[0.04] rounded-xl" />
+            <div className="animate-pulse h-14 bg-(--surface) rounded-xl" />
           )}
           {result && !searching && (
-            <div className="bg-white/[0.04] rounded-xl p-4 border border-white/[0.06]">
+            <div className="bg-(--surface) rounded-xl p-4 border border-(--rim)">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-lg">{result.flag}</span>
-                <span className="text-white/60 text-sm">{result.name} ({result.code})</span>
+                <span className="text-(--t2) text-sm">{result.name} ({result.code})</span>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -180,14 +180,14 @@ function SearchModal({ onClose }: { onClose: () => void }) {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   min="0"
-                  className="w-24 bg-white/[0.06] text-[#f0ead6] text-sm rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-amber-400/40 border border-white/[0.06] tabular-nums"
+                  className="w-24 bg-(--surface-2) text-(--foreground) text-sm rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-amber-400/40 border border-(--rim) tabular-nums"
                 />
-                <span className="text-white/30 text-sm">{result.code} =</span>
+                <span className="text-(--t4) text-sm">{result.code} =</span>
                 <span className="text-amber-200 font-semibold text-base tabular-nums">
                   {converted?.toLocaleString()}원
                 </span>
               </div>
-              <p className="text-white/20 text-[10px] mt-2">1 {result.code} = {result.krw.toLocaleString()}원 기준</p>
+              <p className="text-(--t5) text-[10px] mt-2">1 {result.code} = {result.krw.toLocaleString()}원 기준</p>
             </div>
           )}
           {error && !searching && (
@@ -228,7 +228,7 @@ export default function ExchangeWidget() {
 
   return (
     <>
-      <div className="relative overflow-hidden bg-white/[0.05] backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-indigo-400/20 hover:shadow-[0_0_40px_rgba(129,140,248,0.10)] transition-all">
+      <div className="relative overflow-hidden bg-(--surface) backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border border-(--rim-2) shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-indigo-400/20 hover:shadow-[0_0_40px_rgba(129,140,248,0.10)] transition-all">
         <div style={{ height: 2, background: "linear-gradient(to right, transparent, rgba(129,140,248,0.7), rgba(99,102,241,0.5), transparent)" }} className="absolute top-0 inset-x-0 pointer-events-none" />
         <div className="flex items-center justify-between mb-3">
           <div className="flex gap-1 p-0.5 rounded-lg" style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)" }}>
@@ -250,12 +250,12 @@ export default function ExchangeWidget() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowModal(true)}
-              className="text-white/25 hover:text-amber-400/80 transition-colors"
+              className="text-(--t4) hover:text-amber-400/80 transition-colors"
               title="환율 검색"
             >
               <Search className="w-4 h-4" />
             </button>
-            <button onClick={fetchRates} className="text-white/25 hover:text-amber-400/80 transition-colors">
+            <button onClick={fetchRates} className="text-(--t4) hover:text-amber-400/80 transition-colors">
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
@@ -265,18 +265,18 @@ export default function ExchangeWidget() {
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
               <div key={i} className="animate-pulse flex justify-between py-2">
-                <div className="h-4 bg-white/[0.05] rounded w-20" />
-                <div className="h-4 bg-white/[0.05] rounded w-24" />
+                <div className="h-4 bg-(--surface) rounded w-20" />
+                <div className="h-4 bg-(--surface) rounded w-24" />
               </div>
             ))}
           </div>
         ) : !data ? (
-          <div className="text-white/20 text-sm text-center py-4">환율 정보를 불러올 수 없습니다</div>
+          <div className="text-(--t5) text-sm text-center py-4">환율 정보를 불러올 수 없습니다</div>
         ) : (
           <div>{rates.map((r) => <RateRow key={r.code} rate={r} />)}</div>
         )}
 
-        <p className="text-white/15 text-[10px] mt-3 text-right tracking-wide">
+        <p className="text-(--t5) text-[10px] mt-3 text-right tracking-wide">
           Frankfurter · {data?.date ?? "—"}
         </p>
       </div>

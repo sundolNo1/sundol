@@ -68,13 +68,13 @@ function StockRow({ item, onDelete }: { item: StockItem; onDelete?: () => void }
 
   if (item.price === null) {
     return (
-      <div className="group flex items-center justify-between py-2 px-1 border-b border-white/[0.04] last:border-0">
-        <span className="text-xs sm:text-sm text-white/40">{item.name}</span>
+      <div className="group flex items-center justify-between py-2 px-1 border-b border-(--rim) last:border-0">
+        <span className="text-xs sm:text-sm text-(--t3)">{item.name}</span>
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-white/20">—</span>
+          <span className="text-xs text-(--t5)">—</span>
           {onDelete && (
             <button onClick={onDelete}
-              className="text-white/20 hover:text-red-400 transition-colors sm:opacity-0 sm:group-hover:opacity-100"
+              className="text-(--t5) hover:text-red-400 transition-colors sm:opacity-0 sm:group-hover:opacity-100"
               aria-label="삭제">
               <X className="w-3 h-3" />
             </button>
@@ -90,13 +90,13 @@ function StockRow({ item, onDelete }: { item: StockItem; onDelete?: () => void }
 
   return (
     <a href={url} target="_blank" rel="noopener noreferrer"
-      className="group flex items-center justify-between py-2 px-1 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.04] active:bg-white/[0.06] rounded-lg transition-colors cursor-pointer">
+      className="group flex items-center justify-between py-2 px-1 border-b border-(--rim) last:border-0 hover:bg-(--surface) active:bg-(--surface-2) rounded-lg transition-colors cursor-pointer">
       <div className="flex items-center gap-1.5 min-w-0">
         <Icon className="w-3 h-3 flex-shrink-0" style={{ color }} />
-        <span className="text-xs sm:text-sm font-medium text-white/70 truncate">{item.name}</span>
+        <span className="text-xs sm:text-sm font-medium text-(--t1) truncate">{item.name}</span>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-        <span className="text-xs sm:text-sm font-semibold text-white/80 tabular-nums">
+        <span className="text-xs sm:text-sm font-semibold text-(--t1) tabular-nums">
           {fmt(item.price, item.symbol)}
         </span>
         <span className="text-[10px] sm:text-xs tabular-nums font-medium px-1.5 py-0.5 rounded"
@@ -106,7 +106,7 @@ function StockRow({ item, onDelete }: { item: StockItem; onDelete?: () => void }
         {onDelete && (
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
-            className="text-white/20 hover:text-red-400 transition-colors sm:opacity-0 sm:group-hover:opacity-100"
+            className="text-(--t5) hover:text-red-400 transition-colors sm:opacity-0 sm:group-hover:opacity-100"
             aria-label="삭제">
             <X className="w-3 h-3" />
           </button>
@@ -191,15 +191,15 @@ function AddStockModal({ onAdd, onClose, existingSymbols }: {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4"
       onClick={onClose}
       style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
-      <div className="relative w-full max-w-sm rounded-2xl overflow-hidden border border-white/[0.1] max-h-[88vh] flex flex-col"
+      <div className="relative w-full max-w-sm rounded-2xl overflow-hidden border border-(--rim-2) max-h-[88vh] flex flex-col"
         style={{ background: "rgba(15,15,20,0.97)" }}
         onClick={e => e.stopPropagation()}>
         <div style={{ height: 2, background: "linear-gradient(to right, transparent, rgba(251,191,36,0.7), rgba(245,158,11,0.5), transparent)" }} />
 
         <div className="p-5 overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-white/80">종목 추가</h3>
-            <button onClick={onClose} className="text-white/30 hover:text-white/60 transition-colors">
+            <h3 className="text-sm font-semibold text-(--t1)">종목 추가</h3>
+            <button onClick={onClose} className="text-(--t4) hover:text-(--t2) transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -213,7 +213,7 @@ function AddStockModal({ onAdd, onClose, existingSymbols }: {
                 onChange={e => { setQuery(e.target.value); setError(""); if (selected) { setSelected(null); setQuote(null); } }}
                 onKeyDown={e => { if (e.key === "Enter") handleSearch(); }}
                 placeholder="종목명 또는 심볼 (예: 삼성전자, samsung, AAPL)"
-                className="flex-1 bg-white/[0.06] border border-white/[0.1] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/20 outline-none focus:border-amber-400/40"
+                className="flex-1 bg-(--surface-2) border border-(--rim-2) rounded-lg px-3 py-2 text-sm text-(--t1) placeholder:text-(--t5) outline-none focus:border-amber-400/40"
                 autoFocus
               />
               <button
@@ -224,7 +224,7 @@ function AddStockModal({ onAdd, onClose, existingSymbols }: {
                 {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-[10px] text-white/25 mt-1.5">
+            <p className="text-[10px] text-(--t4) mt-1.5">
               한글·영문·심볼 모두 검색 가능 (예: 삼성전자, samsung, AAPL)
             </p>
           </div>
@@ -236,16 +236,16 @@ function AddStockModal({ onAdd, onClose, existingSymbols }: {
 
           {/* 검색 결과 목록 */}
           {results.length > 0 && !selected && (
-            <div className="mb-3 rounded-xl overflow-hidden border border-white/[0.07]">
+            <div className="mb-3 rounded-xl overflow-hidden border border-(--rim-2)">
               {results.map((r, i) => (
                 <button key={r.symbol}
                   onClick={() => handleSelect(r)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-white/[0.06] active:bg-white/[0.09] transition-colors ${i > 0 ? "border-t border-white/[0.05]" : ""}`}>
+                  className={`w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-(--surface-2) active:bg-(--surface-3) transition-colors ${i > 0 ? "border-t border-(--rim)" : ""}`}>
                   <div className="min-w-0">
                     <span className="text-xs font-mono font-semibold text-amber-300/90">{r.symbol}</span>
-                    <p className="text-[11px] text-white/45 mt-0.5 truncate">{r.name}</p>
+                    <p className="text-[11px] text-(--t3) mt-0.5 truncate">{r.name}</p>
                   </div>
-                  <span className="text-[10px] text-white/25 flex-shrink-0 ml-3">{r.exchange}</span>
+                  <span className="text-[10px] text-(--t4) flex-shrink-0 ml-3">{r.exchange}</span>
                 </button>
               ))}
             </div>
@@ -258,12 +258,12 @@ function AddStockModal({ onAdd, onClose, existingSymbols }: {
                 style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.2)" }}>
                 <div>
                   <span className="text-xs font-mono font-semibold text-amber-300/90">{selected.symbol}</span>
-                  <p className="text-[11px] text-white/40 mt-0.5">{selected.exchange}</p>
+                  <p className="text-[11px] text-(--t3) mt-0.5">{selected.exchange}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {quote && (
                     <>
-                      <span className="text-sm font-semibold text-white/80 tabular-nums">{fmt(quote.price, selected.symbol)}</span>
+                      <span className="text-sm font-semibold text-(--t1) tabular-nums">{fmt(quote.price, selected.symbol)}</span>
                       <span className="text-xs tabular-nums px-1.5 py-0.5 rounded"
                         style={{ color: qColor, background: `${qColor}18`, border: `1px solid ${qColor}30` }}>
                         {up ? "+" : ""}{quote.changePct.toFixed(2)}%
@@ -271,26 +271,26 @@ function AddStockModal({ onAdd, onClose, existingSymbols }: {
                     </>
                   )}
                   <button onClick={() => { setSelected(null); setQuote(null); setResults([]); setSearched(false); }}
-                    className="text-white/25 hover:text-white/55 transition-colors ml-0.5">
+                    className="text-(--t4) hover:text-(--t2) transition-colors ml-0.5">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
 
               <div className="mb-3">
-                <label className="text-xs text-white/40 mb-1 block">표시 이름</label>
+                <label className="text-xs text-(--t3) mb-1 block">표시 이름</label>
                 <input
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter") handleAdd(); }}
                   placeholder="종목명"
-                  className="w-full bg-white/[0.06] border border-white/[0.1] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/20 outline-none focus:border-amber-400/40"
+                  className="w-full bg-(--surface-2) border border-(--rim-2) rounded-lg px-3 py-2 text-sm text-(--t1) placeholder:text-(--t5) outline-none focus:border-amber-400/40"
                 />
               </div>
 
               <div className="mb-4">
-                <label className="text-xs text-white/40 mb-1 block">구분</label>
+                <label className="text-xs text-(--t3) mb-1 block">구분</label>
                 <div className="flex gap-1 p-0.5 rounded-lg w-fit" style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)" }}>
                   {(["domestic", "foreign"] as const).map(key => (
                     <button key={key}
@@ -380,7 +380,7 @@ export default function StocksWidget() {
   const existingSymbols = [...DEFAULT_SYMBOLS, ...customStocks.map(s => s.symbol)];
 
   return (
-    <div className="relative overflow-hidden bg-white/[0.05] backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-emerald-400/20 hover:shadow-[0_0_40px_rgba(52,211,153,0.10)] transition-all">
+    <div className="relative overflow-hidden bg-(--surface) backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border border-(--rim-2) shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-emerald-400/20 hover:shadow-[0_0_40px_rgba(52,211,153,0.10)] transition-all">
       <div style={{ height: 2, background: "linear-gradient(to right, transparent, rgba(52,211,153,0.7), rgba(16,185,129,0.5), transparent)" }} className="absolute top-0 inset-x-0 pointer-events-none" />
 
       <div className="flex items-center justify-between mb-3">
@@ -398,12 +398,12 @@ export default function StocksWidget() {
         </div>
         <div className="flex items-center gap-1.5">
           <button onClick={() => setShowAddModal(true)}
-            className="text-white/25 hover:text-amber-400/80 transition-colors"
+            className="text-(--t4) hover:text-amber-400/80 transition-colors"
             aria-label="종목 추가">
             <Plus className="w-4 h-4" />
           </button>
           <button onClick={() => doFetch(customStocks)}
-            className="text-white/25 hover:text-amber-400/80 transition-colors"
+            className="text-(--t4) hover:text-amber-400/80 transition-colors"
             aria-label="새로고침">
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
@@ -414,13 +414,13 @@ export default function StocksWidget() {
         <div className="space-y-2">
           {Array.from({ length: Math.max(2, filtered.length || 2) }).map((_, i) => (
             <div key={i} className="animate-pulse flex justify-between py-2">
-              <div className="h-4 bg-white/[0.05] rounded w-20" />
-              <div className="h-4 bg-white/[0.05] rounded w-24" />
+              <div className="h-4 bg-(--surface) rounded w-20" />
+              <div className="h-4 bg-(--surface) rounded w-24" />
             </div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-white/20 text-sm text-center py-4">데이터를 불러올 수 없습니다</div>
+        <div className="text-(--t5) text-sm text-center py-4">데이터를 불러올 수 없습니다</div>
       ) : (
         <div>
           {filtered.map(item => (
@@ -433,7 +433,7 @@ export default function StocksWidget() {
         </div>
       )}
 
-      <p className="text-white/15 text-[10px] mt-3 text-right tracking-wide">Yahoo Finance · 5분 캐시</p>
+      <p className="text-(--t5) text-[10px] mt-3 text-right tracking-wide">Yahoo Finance · 5분 캐시</p>
 
       {showAddModal && (
         <AddStockModal

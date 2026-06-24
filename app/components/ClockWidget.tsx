@@ -45,11 +45,11 @@ function MiniCalendar({ today }: { today: Date }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <button onClick={prev} className="w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors">‹</button>
-        <span className="text-sm font-semibold text-white/70">
+        <button onClick={prev} className="w-7 h-7 rounded-lg flex items-center justify-center text-(--t3) hover:text-(--t1) hover:bg-(--surface-2) transition-colors">‹</button>
+        <span className="text-sm font-semibold text-(--t1)">
           {viewYear}년 {viewMonth + 1}월
         </span>
-        <button onClick={next} className="w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors">›</button>
+        <button onClick={next} className="w-7 h-7 rounded-lg flex items-center justify-center text-(--t3) hover:text-(--t1) hover:bg-(--surface-2) transition-colors">›</button>
       </div>
       <div className="grid grid-cols-7 gap-0.5 text-center mb-1">
         {["일", "월", "화", "수", "목", "금", "토"].map((d, i) => (
@@ -61,9 +61,9 @@ function MiniCalendar({ today }: { today: Date }) {
           <div key={i} className={`text-xs py-1.5 rounded-lg transition-colors ${
             d === null ? "" :
             isToday(d) ? "bg-amber-400/20 text-amber-300 font-bold ring-1 ring-amber-400/40" :
-            i % 7 === 0 ? "text-red-400/70 hover:bg-white/[0.05]" :
-            i % 7 === 6 ? "text-blue-400/70 hover:bg-white/[0.05]" :
-            "text-white/50 hover:bg-white/[0.05]"
+            i % 7 === 0 ? "text-red-400/70 hover:bg-(--surface)" :
+            i % 7 === 6 ? "text-blue-400/70 hover:bg-(--surface)" :
+            "text-(--t2) hover:bg-(--surface)"
           }`}>
             {d ?? ""}
           </div>
@@ -80,22 +80,22 @@ function WorldClock({ now, hour12 }: { now: Date; hour12: boolean }) {
   return (
     <div>
       <div className="relative mb-3">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25" />
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-(--t4)" />
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="도시 검색..."
-          className="w-full pl-8 pr-3 py-2 rounded-xl text-sm text-white/70 placeholder-white/20 focus:outline-none transition-all"
+          className="w-full pl-8 pr-3 py-2 rounded-xl text-sm text-(--t1) placeholder-(--t5) focus:outline-none transition-all"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
         />
       </div>
       <div className="space-y-0.5 max-h-48 overflow-y-auto pr-1">
         {filtered.map(city => (
-          <div key={city.tz} className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-white/[0.04] transition-colors">
+          <div key={city.tz} className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-(--surface) transition-colors">
             <div className="flex items-center gap-2">
               <span className="text-base">{city.flag}</span>
-              <span className="text-xs text-white/60">{city.name}</span>
-              <span className="text-[10px] text-white/25">{getCityDate(city.tz, now)}</span>
+              <span className="text-xs text-(--t2)">{city.name}</span>
+              <span className="text-[10px] text-(--t4)">{getCityDate(city.tz, now)}</span>
             </div>
             <span className="text-sm font-semibold tabular-nums" style={{ color: "#fcd34d" }}>
               {getCityTime(city.tz, now, hour12)}
@@ -154,20 +154,20 @@ export default function ClockWidget() {
     <>
       <div
         onClick={() => setShowModal(true)}
-        className="w-full relative overflow-hidden bg-white/[0.05] backdrop-blur-2xl rounded-2xl p-4 sm:p-6 md:p-8 text-center border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-amber-400/30 hover:bg-white/[0.07] hover:shadow-[0_0_40px_rgba(251,191,36,0.12)] transition-all cursor-pointer select-none"
+        className="w-full relative overflow-hidden bg-(--surface) backdrop-blur-2xl rounded-2xl p-4 sm:p-6 md:p-8 text-center border border-(--rim-2) shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-amber-400/30 hover:bg-(--surface-2) hover:shadow-[0_0_40px_rgba(251,191,36,0.12)] transition-all cursor-pointer select-none"
       >
         <div style={{ height: 2, background: "linear-gradient(to right, transparent, rgba(251,191,36,0.7), rgba(245,158,11,0.5), transparent)" }} className="absolute top-0 inset-x-0 pointer-events-none" />
 
         <div className="flex items-baseline justify-center">
-          <span className="text-3xl sm:text-5xl md:text-7xl font-thin tracking-[0.12em] text-[#f0ead6]">{hours}</span>
+          <span className="text-3xl sm:text-5xl md:text-7xl font-thin tracking-[0.12em] text-(--foreground)">{hours}</span>
           <span className="text-2xl sm:text-4xl md:text-5xl font-thin text-amber-400/50 animate-pulse mx-1 sm:mx-1.5 mb-1">:</span>
-          <span className="text-3xl sm:text-5xl md:text-7xl font-thin tracking-[0.12em] text-[#f0ead6]">{minutes}</span>
-          <span className="text-base sm:text-xl md:text-2xl font-thin text-white/20 ml-1.5 sm:ml-2 mb-1">:{seconds}</span>
+          <span className="text-3xl sm:text-5xl md:text-7xl font-thin tracking-[0.12em] text-(--foreground)">{minutes}</span>
+          <span className="text-base sm:text-xl md:text-2xl font-thin text-(--t5) ml-1.5 sm:ml-2 mb-1">:{seconds}</span>
           {ampm && (
-            <span className="text-xs sm:text-sm font-medium text-white/35 ml-2 self-end mb-1.5">{ampm}</span>
+            <span className="text-xs sm:text-sm font-medium text-(--t3) ml-2 self-end mb-1.5">{ampm}</span>
           )}
         </div>
-        <div className="mt-2 sm:mt-4 text-white/30 text-[10px] sm:text-xs tracking-widest uppercase">{dateStr}</div>
+        <div className="mt-2 sm:mt-4 text-(--t4) text-[10px] sm:text-xs tracking-widest uppercase">{dateStr}</div>
 
         {/* 12h / 24h 토글 */}
         {mounted && (
@@ -205,7 +205,7 @@ export default function ClockWidget() {
                   ))}
                 </div>
                 <button onClick={() => setShowModal(false)}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-colors">
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-(--t4) hover:text-(--t1) hover:bg-(--surface-2) transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>

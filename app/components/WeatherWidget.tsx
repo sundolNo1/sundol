@@ -54,15 +54,15 @@ function WeatherIcon({ code, className }: { code: string; className?: string }) 
   const cls = className ?? "w-7 h-7";
   const icons: Record<string, React.ReactNode> = {
     "01": <Sun className={`${cls} text-amber-300`} />,
-    "02": <Cloud className={`${cls} text-white/50`} />,
-    "03": <Cloud className={`${cls} text-white/40`} />,
-    "04": <Cloud className={`${cls} text-white/30`} />,
+    "02": <Cloud className={`${cls} text-(--t2)`} />,
+    "03": <Cloud className={`${cls} text-(--t3)`} />,
+    "04": <Cloud className={`${cls} text-(--t4)`} />,
     "09": <CloudRain className={`${cls} text-blue-300/70`} />,
     "10": <CloudRain className={`${cls} text-blue-300/70`} />,
     "13": <CloudSnow className={`${cls} text-blue-100/60`} />,
-    "50": <Wind className={`${cls} text-white/40`} />,
+    "50": <Wind className={`${cls} text-(--t3)`} />,
   };
-  return <>{icons[code] ?? <Cloud className={`${cls} text-white/40`} />}</>;
+  return <>{icons[code] ?? <Cloud className={`${cls} text-(--t3)`} />}</>;
 }
 
 export default function WeatherWidget() {
@@ -153,13 +153,13 @@ export default function WeatherWidget() {
 
   return (
     <>
-      <div className="relative overflow-hidden bg-white/[0.05] backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-sky-400/20 hover:shadow-[0_0_40px_rgba(56,189,248,0.10)] transition-all">
+      <div className="relative overflow-hidden bg-(--surface) backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border border-(--rim-2) shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-sky-400/20 hover:shadow-[0_0_40px_rgba(56,189,248,0.10)] transition-all">
         <div style={{ height: 2, background: "linear-gradient(to right, transparent, rgba(56,189,248,0.7), rgba(14,165,233,0.5), transparent)" }} className="absolute top-0 inset-x-0 pointer-events-none" />
         <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">날씨</h2>
+          <h2 className="text-(--t4) text-xs font-semibold uppercase tracking-widest">날씨</h2>
           <button
             onClick={(e) => { e.stopPropagation(); setShowPicker((v) => !v); }}
-            className="flex items-center gap-1 text-white/30 hover:text-amber-400/80 transition-colors text-xs"
+            className="flex items-center gap-1 text-(--t4) hover:text-amber-400/80 transition-colors text-xs"
           >
             {selectedCity === "현재 위치" ? <Navigation className="w-3.5 h-3.5" /> : <MapPin className="w-3.5 h-3.5" />}
             <span>{selectedCity}</span>
@@ -168,12 +168,12 @@ export default function WeatherWidget() {
         </div>
 
         {showPicker && (
-          <div className="mb-4 overflow-y-auto max-h-40 rounded-xl bg-white/[0.04] border border-white/[0.08] divide-y divide-white/[0.04]">
+          <div className="mb-4 overflow-y-auto max-h-40 rounded-xl bg-(--surface) border border-(--rim-2) divide-y divide-white/[0.04]">
             {CITIES.map((city) => (
               <button key={city.name} onClick={() => handleSelectCity(city)}
                 className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2
-                  ${selectedCity === city.name ? "text-amber-300 bg-amber-400/10" : "text-white/50 hover:bg-white/[0.05] hover:text-white/80"}`}>
-                {city.name === "현재 위치" ? <Navigation className="w-3 h-3 shrink-0" /> : <MapPin className="w-3 h-3 shrink-0 text-white/20" />}
+                  ${selectedCity === city.name ? "text-amber-300 bg-amber-400/10" : "text-(--t2) hover:bg-(--surface) hover:text-(--t1)"}`}>
+                {city.name === "현재 위치" ? <Navigation className="w-3 h-3 shrink-0" /> : <MapPin className="w-3 h-3 shrink-0 text-(--t5)" />}
                 {city.name}
               </button>
             ))}
@@ -187,8 +187,8 @@ export default function WeatherWidget() {
           </div>
         )}
 
-        {loading && <div className="flex items-center justify-center h-20 text-white/20 text-sm">로딩 중...</div>}
-        {error && <div className="flex items-center justify-center h-20 text-white/20 text-sm text-center">{error}</div>}
+        {loading && <div className="flex items-center justify-center h-20 text-(--t5) text-sm">로딩 중...</div>}
+        {error && <div className="flex items-center justify-center h-20 text-(--t5) text-sm text-center">{error}</div>}
         {!loading && !error && weather && (
           <button onClick={handleOpenModal} className="w-full text-left hover:opacity-90 transition-opacity">
             <div className="flex items-center gap-2 sm:gap-4">
@@ -196,16 +196,16 @@ export default function WeatherWidget() {
                 <WeatherIcon code={weather.icon} className="w-7 h-7 sm:w-10 sm:h-10" />
               </div>
               <div className="min-w-0">
-                <div className="text-3xl sm:text-5xl font-thin text-[#f0ead6] tracking-wide">{weather.temp}°</div>
-                <div className="text-white/40 text-xs sm:text-sm capitalize mt-0.5 truncate">{weather.description}</div>
-                <div className="text-white/20 text-xs truncate">{weather.city}</div>
+                <div className="text-3xl sm:text-5xl font-thin text-(--foreground) tracking-wide">{weather.temp}°</div>
+                <div className="text-(--t3) text-xs sm:text-sm capitalize mt-0.5 truncate">{weather.description}</div>
+                <div className="text-(--t5) text-xs truncate">{weather.city}</div>
               </div>
-              <div className="ml-auto text-white/20 text-xs flex-shrink-0">예보 →</div>
+              <div className="ml-auto text-(--t5) text-xs flex-shrink-0">예보 →</div>
             </div>
-            <div className="mt-3 sm:mt-5 grid grid-cols-3 gap-1 sm:gap-2 text-[10px] sm:text-xs text-white/30 border-t border-white/[0.05] pt-3 sm:pt-4">
+            <div className="mt-3 sm:mt-5 grid grid-cols-3 gap-1 sm:gap-2 text-[10px] sm:text-xs text-(--t4) border-t border-(--rim) pt-3 sm:pt-4">
               <div className="flex items-center gap-1.5"><Thermometer className="w-3 h-3 text-amber-400/40" /><span>체감 {weather.feels_like}°</span></div>
               <div className="flex items-center gap-1.5"><Droplets className="w-3 h-3 text-blue-300/40" /><span>습도 {weather.humidity}%</span></div>
-              <div className="flex items-center gap-1.5"><Wind className="w-3 h-3 text-white/30" /><span>바람 {weather.wind_speed}m/s</span></div>
+              <div className="flex items-center gap-1.5"><Wind className="w-3 h-3 text-(--t4)" /><span>바람 {weather.wind_speed}m/s</span></div>
             </div>
           </button>
         )}
@@ -222,35 +222,35 @@ export default function WeatherWidget() {
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <span className="text-sm font-semibold text-white/70">시간대별 예보</span>
-                  <span className="text-xs text-white/30 ml-2">{weather?.city}</span>
+                  <span className="text-sm font-semibold text-(--t1)">시간대별 예보</span>
+                  <span className="text-xs text-(--t4) ml-2">{weather?.city}</span>
                 </div>
                 <button onClick={() => setShowModal(false)}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-colors">
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-(--t4) hover:text-(--t1) hover:bg-(--surface-2) transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               {forecastLoading ? (
                 <div className="space-y-2 py-4">
-                  {[1,2,3].map(i => <div key={i} className="animate-pulse h-10 bg-white/[0.04] rounded-xl" />)}
+                  {[1,2,3].map(i => <div key={i} className="animate-pulse h-10 bg-(--surface) rounded-xl" />)}
                 </div>
               ) : forecast ? (
                 <>
                   {/* 시간별 예보 */}
                   <div className="mb-4">
-                    <p className="text-[10px] text-white/25 uppercase tracking-widest mb-2">3시간 간격 예보</p>
+                    <p className="text-[10px] text-(--t4) uppercase tracking-widest mb-2">3시간 간격 예보</p>
                     <div className="flex gap-2 overflow-x-auto pb-1">
                       {forecast.hourly.map((h) => {
                         const timeStr = new Date(h.dt * 1000).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
                         return (
                           <div key={h.dt} className="flex flex-col items-center gap-1 flex-shrink-0 px-2 py-2 rounded-xl min-w-[52px]"
                             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                            <span className="text-[10px] text-white/35">{timeStr}</span>
+                            <span className="text-[10px] text-(--t3)">{timeStr}</span>
                             <div className="[&>svg]:w-5 [&>svg]:h-5 opacity-80">
                               <WeatherIcon code={h.icon} className="w-5 h-5" />
                             </div>
-                            <span className="text-sm font-semibold text-white/80">{h.temp}°</span>
+                            <span className="text-sm font-semibold text-(--t1)">{h.temp}°</span>
                             {h.pop > 0 && (
                               <span className="text-[9px] text-blue-300/70">💧{h.pop}%</span>
                             )}
@@ -262,18 +262,18 @@ export default function WeatherWidget() {
 
                   {/* 일별 예보 */}
                   <div>
-                    <p className="text-[10px] text-white/25 uppercase tracking-widest mb-2">5일 예보</p>
+                    <p className="text-[10px] text-(--t4) uppercase tracking-widest mb-2">5일 예보</p>
                     <div className="space-y-1">
                       {forecast.daily.map((d) => (
-                        <div key={d.date} className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-white/[0.04] transition-colors">
-                          <span className="text-xs text-white/50 w-24">{d.date}</span>
+                        <div key={d.date} className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-(--surface) transition-colors">
+                          <span className="text-xs text-(--t2) w-24">{d.date}</span>
                           <div className="[&>svg]:w-4 [&>svg]:h-4 opacity-70">
                             <WeatherIcon code={d.icon} className="w-4 h-4" />
                           </div>
                           {d.pop > 0 && <span className="text-[10px] text-blue-300/60">💧{d.pop}%</span>}
                           <div className="flex items-center gap-2 text-xs">
                             <span className="text-red-300/70">{d.tempMax}°</span>
-                            <span className="text-white/20">/</span>
+                            <span className="text-(--t5)">/</span>
                             <span className="text-blue-300/70">{d.tempMin}°</span>
                           </div>
                         </div>
@@ -282,7 +282,7 @@ export default function WeatherWidget() {
                   </div>
                 </>
               ) : (
-                <div className="text-white/20 text-sm text-center py-6">예보를 불러올 수 없습니다</div>
+                <div className="text-(--t5) text-sm text-center py-6">예보를 불러올 수 없습니다</div>
               )}
             </div>
           </div>

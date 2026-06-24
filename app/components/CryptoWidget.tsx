@@ -42,19 +42,19 @@ function CoinRow({ item }: { item: CoinItem }) {
       href={COIN_URLS[item.id]}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center justify-between py-2 px-1 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.04] active:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
+      className="flex items-center justify-between py-2 px-1 border-b border-(--rim) last:border-0 hover:bg-(--surface) active:bg-(--surface-2) rounded-lg transition-colors cursor-pointer"
     >
       <div className="flex items-center gap-2 min-w-0">
-        <span className="text-sm w-5 text-center text-white/30 flex-shrink-0 font-mono">
+        <span className="text-sm w-5 text-center text-(--t4) flex-shrink-0 font-mono">
           {COIN_EMOJI[item.id]}
         </span>
-        <span className="text-xs sm:text-sm font-medium text-white/70 truncate">{item.name}</span>
-        <span className="text-[10px] text-white/25 flex-shrink-0">{item.symbol}</span>
+        <span className="text-xs sm:text-sm font-medium text-(--t1) truncate">{item.name}</span>
+        <span className="text-[10px] text-(--t4) flex-shrink-0">{item.symbol}</span>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0 ml-2">
         {item.price !== null ? (
           <>
-            <span className="text-xs sm:text-sm font-semibold text-white/80 tabular-nums">
+            <span className="text-xs sm:text-sm font-semibold text-(--t1) tabular-nums">
               ₩{fmtKRW(item.price)}
             </span>
             <span
@@ -66,7 +66,7 @@ function CoinRow({ item }: { item: CoinItem }) {
             </span>
           </>
         ) : (
-          <span className="text-xs text-white/20">—</span>
+          <span className="text-xs text-(--t5)">—</span>
         )}
       </div>
     </a>
@@ -99,11 +99,11 @@ export default function CryptoWidget() {
     : null;
 
   return (
-    <div className="relative overflow-hidden bg-white/[0.05] backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-cyan-400/20 hover:shadow-[0_0_40px_rgba(34,211,238,0.10)] transition-all">
+    <div className="relative overflow-hidden bg-(--surface) backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border border-(--rim-2) shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-cyan-400/20 hover:shadow-[0_0_40px_rgba(34,211,238,0.10)] transition-all">
       <div style={{ height: 2, background: "linear-gradient(to right, transparent, rgba(34,211,238,0.7), rgba(6,182,212,0.5), transparent)" }} className="absolute top-0 inset-x-0 pointer-events-none" />
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">암호화폐</h2>
-        <button onClick={fetchCoins} className="text-white/25 hover:text-amber-400/80 transition-colors">
+        <h2 className="text-(--t4) text-xs font-semibold uppercase tracking-widest">암호화폐</h2>
+        <button onClick={fetchCoins} className="text-(--t4) hover:text-amber-400/80 transition-colors">
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
         </button>
       </div>
@@ -112,18 +112,18 @@ export default function CryptoWidget() {
         <div className="space-y-2">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="animate-pulse flex justify-between py-2">
-              <div className="h-4 bg-white/[0.05] rounded w-20" />
-              <div className="h-4 bg-white/[0.05] rounded w-24" />
+              <div className="h-4 bg-(--surface) rounded w-20" />
+              <div className="h-4 bg-(--surface) rounded w-24" />
             </div>
           ))}
         </div>
       ) : coins.length === 0 ? (
-        <div className="text-white/20 text-sm text-center py-4">데이터를 불러올 수 없습니다</div>
+        <div className="text-(--t5) text-sm text-center py-4">데이터를 불러올 수 없습니다</div>
       ) : (
         <div>{coins.map((c) => <CoinRow key={c.id} item={c} />)}</div>
       )}
 
-      <p className="text-white/15 text-[10px] mt-3 text-right tracking-wide">
+      <p className="text-(--t5) text-[10px] mt-3 text-right tracking-wide">
         CoinGecko · {timeStr ? `${timeStr} 기준` : "5분 캐시"}
       </p>
     </div>

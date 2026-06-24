@@ -83,14 +83,14 @@ export default function TodoWidget() {
   );
 
   return (
-    <div className="relative overflow-hidden bg-white/[0.05] backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-rose-400/20 hover:shadow-[0_0_40px_rgba(251,113,133,0.10)] transition-all">
+    <div className="relative overflow-hidden bg-(--surface) backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border border-(--rim-2) shadow-[0_4px_30px_rgba(0,0,0,0.25)] hover:border-rose-400/20 hover:shadow-[0_0_40px_rgba(251,113,133,0.10)] transition-all">
       <div style={{ height: 2, background: "linear-gradient(to right, transparent, rgba(251,113,133,0.7), rgba(244,63,94,0.5), transparent)" }} className="absolute top-0 inset-x-0 pointer-events-none" />
       <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <h2 className="text-white/30 text-xs font-semibold uppercase tracking-widest">할 일</h2>
+        <h2 className="text-(--t4) text-xs font-semibold uppercase tracking-widest">할 일</h2>
         {doneCount > 0 && (
           <button
             onClick={clearDone}
-            className="text-white/20 hover:text-red-400/60 transition-colors text-[10px] tracking-wide"
+            className="text-(--t5) hover:text-red-400/60 transition-colors text-[10px] tracking-wide"
           >
             완료 삭제
           </button>
@@ -104,7 +104,7 @@ export default function TodoWidget() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addTodo()}
           placeholder="새 할 일..."
-          className="flex-1 bg-white/[0.04] text-[#f0ead6] text-sm rounded-xl px-3 py-2 outline-none focus:ring-1 focus:ring-amber-400/40 placeholder-white/20 border border-white/[0.06]"
+          className="flex-1 bg-(--surface) text-(--foreground) text-sm rounded-xl px-3 py-2 outline-none focus:ring-1 focus:ring-amber-400/40 placeholder-(--t5) border border-(--rim)"
         />
         <button
           onClick={addTodo}
@@ -123,7 +123,7 @@ export default function TodoWidget() {
               className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all ${
                 filter === f
                   ? "bg-amber-400/15 text-amber-300 border border-amber-400/30"
-                  : "text-white/30 hover:text-white/50 border border-transparent"
+                  : "text-(--t4) hover:text-(--t2) border border-transparent"
               }`}
             >
               {f === "all" ? `전체 ${todos.length}` : f === "active" ? `진행 ${activeCount}` : `완료 ${doneCount}`}
@@ -134,7 +134,7 @@ export default function TodoWidget() {
 
       <div className="space-y-0.5 max-h-48 overflow-y-auto">
         {filtered.length === 0 ? (
-          <div className="text-white/15 text-xs text-center py-6 tracking-wide">
+          <div className="text-(--t5) text-xs text-center py-6 tracking-wide">
             {todos.length === 0 ? "할 일을 추가해 보세요" : "표시할 항목이 없습니다"}
           </div>
         ) : (
@@ -151,12 +151,12 @@ export default function TodoWidget() {
                   ? "opacity-40 scale-[0.98]"
                   : overId === todo.id
                   ? "bg-amber-400/[0.07] ring-1 ring-amber-400/25"
-                  : "hover:bg-white/[0.04]"
+                  : "hover:bg-(--surface)"
               }`}
             >
               {/* 드래그 핸들 */}
               <GripVertical
-                className="w-3.5 h-3.5 flex-shrink-0 text-white/15 group-hover:text-white/35 transition-colors cursor-grab active:cursor-grabbing"
+                className="w-3.5 h-3.5 flex-shrink-0 text-(--t5) group-hover:text-(--t3) transition-colors cursor-grab active:cursor-grabbing"
               />
 
               <button
@@ -164,7 +164,7 @@ export default function TodoWidget() {
                 className={`w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center transition-all ${
                   todo.done
                     ? "bg-amber-400/30 border-amber-400/50"
-                    : "border-white/20 hover:border-amber-400/50"
+                    : "border-(--rim-2) hover:border-amber-400/50"
                 }`}
               >
                 {todo.done && <Check className="w-2.5 h-2.5 text-amber-300" />}
@@ -172,7 +172,7 @@ export default function TodoWidget() {
 
               <span
                 className={`flex-1 text-sm transition-colors ${
-                  todo.done ? "line-through text-white/20" : "text-white/60"
+                  todo.done ? "line-through text-(--t5)" : "text-(--t2)"
                 }`}
               >
                 {todo.text}
@@ -180,7 +180,7 @@ export default function TodoWidget() {
 
               <button
                 onClick={() => removeTodo(todo.id)}
-                className="sm:opacity-0 sm:group-hover:opacity-100 text-white/20 hover:text-red-400/60 active:text-red-400/60 transition-all flex-shrink-0"
+                className="sm:opacity-0 sm:group-hover:opacity-100 text-(--t5) hover:text-red-400/60 active:text-red-400/60 transition-all flex-shrink-0"
               >
                 <X className="w-3 h-3" />
               </button>
