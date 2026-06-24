@@ -32,3 +32,33 @@ body {
   opacity: 0;
   animation: fadeUp 0.5s ease forwards;
 }
+
+@keyframes floating {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+.floating {
+  animation: floating 3.5s ease-in-out infinite;
+}
+
+@keyframes textShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    #92400e 0%,
+    #fbbf24 18%,
+    #fde68a 35%,
+    #ffffff 50%,
+    #fde68a 65%,
+    #fbbf24 82%,
+    #92400e 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textShimmer 5s linear infinite;
+}

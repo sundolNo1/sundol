@@ -113,22 +113,29 @@ export default function WidgetsGrid() {
 
   return (
     <>
-      <div className="space-y-3 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6">
+        {/* Row 1: 시계 + 날씨 */}
         <WidgetRow delay="240ms" cols="always2" viewMode={viewMode}
-          left={vis.clock    ? <ClockWidget />    : null}
-          right={vis.weather ? <WeatherWidget />  : null}
+          left={vis.clock    ? <ClockWidget />   : null}
+          right={vis.weather ? <WeatherWidget /> : null}
         />
-        <WidgetRow delay="320ms" cols="lg" viewMode={viewMode}
+
+        {/* Row 2: 즐겨찾기 + 증시 */}
+        <WidgetRow delay="300ms" cols="lg" viewMode={viewMode}
           left={vis.bookmarks ? <BookmarksWidget /> : null}
-          right={vis.news     ? <NewsWidget />      : null}
+          right={vis.stocks   ? <StocksWidget />    : null}
         />
-        {vis.stocks && (
-          <div className={`fade-up ${CELL}`} style={{ animationDelay: "400ms" }}>
-            <StocksWidget />
+
+        {/* Row 3: 뉴스 (full width) */}
+        {vis.news && (
+          <div className={`fade-up ${CELL}`} style={{ animationDelay: "360ms" }}>
+            <NewsWidget />
           </div>
         )}
-        <WidgetRow delay="480ms" cols="sm" viewMode={viewMode}
-          left={vis.crypto   ? <CryptoWidget />   : null}
+
+        {/* Row 4: 암호화폐 + 환율 */}
+        <WidgetRow delay="420ms" cols="sm" viewMode={viewMode}
+          left={vis.crypto    ? <CryptoWidget />   : null}
           right={vis.exchange ? <ExchangeWidget /> : null}
         />
       </div>
