@@ -445,14 +445,14 @@ export default function MinerPage() {
   const mk = mkeys;
 
   return (
-    <div className="h-screen bg-[#06090f] flex flex-col overflow-hidden select-none">
+    <div className="h-screen bg-(--background) flex flex-col overflow-hidden select-none">
       {/* Header */}
-      <div className="flex items-center gap-3 px-3 py-2 bg-black/40 border-b border-white/[0.05] flex-shrink-0 z-10">
-        <Link href="/games" className="text-white/30 hover:text-amber-300/70 transition-colors text-xs">← 게임 목록</Link>
-        <div className="w-px h-3 bg-white/10"/>
-        <span className="text-white/50 text-xs">⛏️ 마이너</span>
-        {ui.hover && <><div className="w-px h-3 bg-white/10"/><span className="text-amber-300/60 text-xs">{ui.hover}</span></>}
-        <span className="ml-auto text-white/20 text-[10px] hidden sm:block">{started ? "←/→ 이동 · 스페이스 점프 · Z 채굴 · C 설치" : ""}</span>
+      <div className="flex items-center gap-3 px-3 py-2 bg-black/40 border-b border-(--rim) flex-shrink-0 z-10">
+        <Link href="/games" className="text-(--t4) hover:text-amber-300/70 transition-colors text-xs">← 게임 목록</Link>
+        <div className="w-px h-3 bg-(--surface-3)"/>
+        <span className="text-(--t2) text-xs">⛏️ 마이너</span>
+        {ui.hover && <><div className="w-px h-3 bg-(--surface-3)"/><span className="text-amber-300/60 text-xs">{ui.hover}</span></>}
+        <span className="ml-auto text-(--t5) text-[10px] hidden sm:block">{started ? "←/→ 이동 · 스페이스 점프 · Z 채굴 · C 설치" : ""}</span>
       </div>
 
       {/* Canvas */}
@@ -465,46 +465,46 @@ export default function MinerPage() {
             className="absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm"
             onClick={() => { setStarted(true); startedRef.current=true; }}
           >
-            <div className="bg-[#06090f]/90 border border-white/[0.1] rounded-2xl px-8 py-8 text-center max-w-xs w-full mx-4 shadow-2xl">
+            <div className="bg-(--background)/90 border border-(--rim-2) rounded-2xl px-8 py-8 text-center max-w-xs w-full mx-4 shadow-2xl">
               <div className="text-4xl mb-3">⛏️</div>
-              <h2 className="text-[#f0ead6] text-2xl font-bold tracking-widest mb-6">마이너</h2>
+              <h2 className="text-(--foreground) text-2xl font-bold tracking-widest mb-6">마이너</h2>
 
               {/* Desktop controls */}
               <div className="hidden sm:block mb-6 space-y-2 text-left">
-                <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
-                  <span className="text-white/40 text-xs">이동</span>
+                <div className="flex justify-between items-center py-1.5 border-b border-(--rim)">
+                  <span className="text-(--t3) text-xs">이동</span>
                   <span className="text-amber-200/80 text-xs font-mono">← / →</span>
                 </div>
-                <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
-                  <span className="text-white/40 text-xs">점프</span>
+                <div className="flex justify-between items-center py-1.5 border-b border-(--rim)">
+                  <span className="text-(--t3) text-xs">점프</span>
                   <span className="text-amber-200/80 text-xs font-mono">스페이스 / ↑</span>
                 </div>
-                <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
-                  <span className="text-white/40 text-xs">채굴</span>
+                <div className="flex justify-between items-center py-1.5 border-b border-(--rim)">
+                  <span className="text-(--t3) text-xs">채굴</span>
                   <span className="text-amber-200/80 text-xs font-mono">Z (꾹) / 좌클릭</span>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
-                  <span className="text-white/40 text-xs">블록 설치</span>
+                  <span className="text-(--t3) text-xs">블록 설치</span>
                   <span className="text-amber-200/80 text-xs font-mono">C / 우클릭</span>
                 </div>
               </div>
 
               {/* Mobile controls */}
               <div className="sm:hidden mb-6 space-y-2 text-left">
-                <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
-                  <span className="text-white/40 text-xs">이동</span>
+                <div className="flex justify-between items-center py-1.5 border-b border-(--rim)">
+                  <span className="text-(--t3) text-xs">이동</span>
                   <span className="text-amber-200/80 text-xs">◀ ▶ 버튼</span>
                 </div>
-                <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
-                  <span className="text-white/40 text-xs">점프</span>
+                <div className="flex justify-between items-center py-1.5 border-b border-(--rim)">
+                  <span className="text-(--t3) text-xs">점프</span>
                   <span className="text-amber-200/80 text-xs">점프 버튼</span>
                 </div>
-                <div className="flex justify-between items-center py-1.5 border-b border-white/[0.05]">
-                  <span className="text-white/40 text-xs">채굴</span>
+                <div className="flex justify-between items-center py-1.5 border-b border-(--rim)">
+                  <span className="text-(--t3) text-xs">채굴</span>
                   <span className="text-amber-200/80 text-xs">화면 터치 (꾹)</span>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
-                  <span className="text-white/40 text-xs">블록 설치</span>
+                  <span className="text-(--t3) text-xs">블록 설치</span>
                   <span className="text-amber-200/80 text-xs">설치 버튼</span>
                 </div>
               </div>
@@ -522,13 +522,13 @@ export default function MinerPage() {
             onPointerDown={()=>mk.current.l=true}
             onPointerUp={()=>mk.current.l=false}
             onPointerLeave={()=>mk.current.l=false}
-            className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 text-white text-2xl active:bg-white/25 flex items-center justify-center"
+            className="w-14 h-14 rounded-2xl bg-(--surface-3) border border-(--rim-2) text-white text-2xl active:bg-white/25 flex items-center justify-center"
           >◀</button>
           <button
             onPointerDown={()=>mk.current.r=true}
             onPointerUp={()=>mk.current.r=false}
             onPointerLeave={()=>mk.current.r=false}
-            className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 text-white text-2xl active:bg-white/25 flex items-center justify-center"
+            className="w-14 h-14 rounded-2xl bg-(--surface-3) border border-(--rim-2) text-white text-2xl active:bg-white/25 flex items-center justify-center"
           >▶</button>
         </div>
         <div className="absolute bottom-3 right-3 flex flex-col gap-2 sm:hidden z-20">
@@ -546,11 +546,11 @@ export default function MinerPage() {
       </div>
 
       {/* Inventory bar */}
-      <div className="flex-shrink-0 bg-black/50 border-t border-white/[0.05] px-3 py-2 z-10">
+      <div className="flex-shrink-0 bg-black/50 border-t border-(--rim) px-3 py-2 z-10">
         <div className="flex items-center gap-2 max-w-3xl mx-auto flex-wrap min-h-[36px]">
-          <span className="text-white/25 text-[10px] uppercase tracking-widest flex-shrink-0">인벤토리</span>
+          <span className="text-(--t4) text-[10px] uppercase tracking-widest flex-shrink-0">인벤토리</span>
           {invItems.length===0
-            ? <span className="text-white/15 text-xs">블록을 채굴하세요 ⛏️</span>
+            ? <span className="text-(--t5) text-xs">블록을 채굴하세요 ⛏️</span>
             : invItems.map(([id,cnt]) => {
                 const bid=+id, d=BDEFS[bid]; if (!d) return null;
                 const isSel=ui.sel===bid&&!!d.place;
@@ -559,12 +559,12 @@ export default function MinerPage() {
                     onClick={()=>{ if(d.place){gs.current.sel=bid;setUi(u=>({...u,sel:bid}));} }}
                     className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs border transition-all ${
                       isSel ? "bg-amber-400/20 border-amber-400/50 text-amber-200"
-                            : "bg-white/[0.04] border-white/[0.07] text-white/50 hover:bg-white/[0.08]"
+                            : "bg-(--surface) border-(--rim-2) text-(--t2) hover:bg-(--surface-3)"
                     }`}
                   >
                     <span>{d.e||"▪"}</span>
                     <span>{d.n}</span>
-                    <span className="text-white/35">×{cnt}</span>
+                    <span className="text-(--t3)">×{cnt}</span>
                   </button>
                 );
               })

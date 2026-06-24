@@ -216,20 +216,20 @@ export default function SlotPage() {
   const broke = credits < bet && !isAny;
 
   return (
-    <main className="min-h-screen bg-[#06090f] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <main className="min-h-screen bg-(--background) flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="pointer-events-none fixed inset-0">
         <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-amber-500/[0.05] rounded-full blur-[130px]" />
         <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-red-600/[0.06] rounded-full blur-[120px]" />
       </div>
 
       <div className="relative w-full max-w-[320px] sm:max-w-[360px]">
-        <Link href="/games" className="inline-flex items-center gap-2 text-white/30 hover:text-amber-300/70 transition-colors text-sm mb-5">
+        <Link href="/games" className="inline-flex items-center gap-2 text-(--t4) hover:text-amber-300/70 transition-colors text-sm mb-5">
           ← 게임 목록
         </Link>
 
         {/* Title */}
         <div className="text-center mb-4">
-          <p className="text-[11px] tracking-[0.35em] text-white/20 uppercase mb-1">5 paylines</p>
+          <p className="text-[11px] tracking-[0.35em] text-(--t5) uppercase mb-1">5 paylines</p>
           <h1 className="text-3xl font-black tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-red-400 to-amber-200">
             CHERRY MASTER
           </h1>
@@ -238,7 +238,7 @@ export default function SlotPage() {
         {/* Credit / Win */}
         <div className="flex justify-between mb-4 px-0.5">
           <div>
-            <p className="text-[10px] tracking-[0.25em] text-white/20 uppercase">Credit</p>
+            <p className="text-[10px] tracking-[0.25em] text-(--t5) uppercase">Credit</p>
             <p className="text-amber-300 text-2xl font-bold tabular-nums">{credits.toLocaleString()}</p>
           </div>
           {autoSpin && (
@@ -248,8 +248,8 @@ export default function SlotPage() {
             </div>
           )}
           <div className="text-right">
-            <p className="text-[10px] tracking-[0.25em] text-white/20 uppercase">Win</p>
-            <p className={`text-2xl font-bold tabular-nums transition-colors duration-300 ${winAmt > 0 ? "text-green-400" : "text-white/15"}`}>
+            <p className="text-[10px] tracking-[0.25em] text-(--t5) uppercase">Win</p>
+            <p className={`text-2xl font-bold tabular-nums transition-colors duration-300 ${winAmt > 0 ? "text-green-400" : "text-(--t5)"}`}>
               {winAmt.toLocaleString()}
             </p>
           </div>
@@ -259,7 +259,7 @@ export default function SlotPage() {
         <div className={`bg-gradient-to-b from-zinc-800/80 to-zinc-900/90 backdrop-blur-xl rounded-3xl p-5 border shadow-[0_8px_64px_rgba(0,0,0,0.7)] transition-all duration-300 ${
           winFlash ? "border-amber-400/40 shadow-[0_0_60px_rgba(251,191,36,0.15)]"
           : autoSpin ? "border-emerald-500/20"
-          : "border-white/[0.07]"
+          : "border-(--rim-2)"
         }`}>
 
           {/* Status */}
@@ -268,7 +268,7 @@ export default function SlotPage() {
               msg.includes("WIN") || msg.includes("JACKPOT") || msg.includes("당첨")
                 ? "text-amber-300 animate-pulse"
                 : autoSpin && !msg ? "text-emerald-400/60"
-                : "text-white/25"
+                : "text-(--t4)"
             }`}>
               {autoSpin && !isAny && !msg ? "⟳ 자동 스핀 중..." : msg}
             </span>
@@ -281,7 +281,7 @@ export default function SlotPage() {
               {[0, 1, 2].map(ri => (
                 <div
                   key={ri}
-                  className="relative w-[80px] h-[240px] bg-black/60 rounded-2xl overflow-hidden border border-white/[0.07]"
+                  className="relative w-[80px] h-[240px] bg-black/60 rounded-2xl overflow-hidden border border-(--rim-2)"
                 >
                   <div className="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/85 to-transparent z-10 pointer-events-none" />
                   <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/85 to-transparent z-10 pointer-events-none" />
@@ -370,7 +370,7 @@ export default function SlotPage() {
                 className={`flex-1 py-1 rounded-lg text-[11px] font-bold transition-all disabled:opacity-40 border ${
                   speed === s.id
                     ? "bg-sky-400/15 border-sky-400/35 text-sky-300"
-                    : "bg-white/[0.03] border-white/[0.06] text-white/25 hover:text-white/50 hover:bg-white/[0.05]"
+                    : "bg-(--surface) border-(--rim) text-(--t4) hover:text-(--t2) hover:bg-(--surface)"
                 }`}
               >
                 {s.label}
@@ -388,7 +388,7 @@ export default function SlotPage() {
                 className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition-all disabled:opacity-30 border ${
                   bet === b
                     ? "bg-amber-400/15 border-amber-400/35 text-amber-300"
-                    : "bg-white/[0.03] border-white/[0.06] text-white/30 hover:text-white/60 hover:bg-white/[0.06]"
+                    : "bg-(--surface) border-(--rim) text-(--t4) hover:text-(--t2) hover:bg-(--surface-2)"
                 }`}
               >
                 {b}
@@ -414,7 +414,7 @@ export default function SlotPage() {
               className={`w-[72px] py-[14px] rounded-2xl font-black text-sm tracking-wider transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed border ${
                 autoSpin
                   ? "bg-emerald-500/20 border-emerald-400/50 text-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.2)] animate-pulse"
-                  : "bg-white/[0.04] border-white/[0.08] text-white/40 hover:text-white/70 hover:bg-white/[0.07]"
+                  : "bg-(--surface) border-(--rim-2) text-(--t3) hover:text-(--t1) hover:bg-(--surface-2)"
               }`}
             >
               {autoSpin ? "STOP" : "AUTO"}
@@ -426,16 +426,16 @@ export default function SlotPage() {
         {broke && (
           <button
             onClick={handleRecharge}
-            className="w-full mt-3 py-2.5 rounded-xl text-sm font-semibold text-white/40 border border-white/[0.07] hover:text-amber-300/70 hover:border-amber-400/20 transition-all"
+            className="w-full mt-3 py-2.5 rounded-xl text-sm font-semibold text-(--t3) border border-(--rim-2) hover:text-amber-300/70 hover:border-amber-400/20 transition-all"
           >
             크레딧 부족 — 무료 충전 (+200)
           </button>
         )}
 
         {/* Payout + payline guide */}
-        <div className="mt-5 bg-white/[0.02] rounded-2xl p-4 border border-white/[0.05]">
+        <div className="mt-5 bg-(--surface) rounded-2xl p-4 border border-(--rim)">
           {/* Payline visual guide */}
-          <p className="text-white/15 text-[9px] uppercase tracking-[0.35em] text-center mb-2">페이라인</p>
+          <p className="text-(--t5) text-[9px] uppercase tracking-[0.35em] text-center mb-2">페이라인</p>
           <div className="flex justify-center gap-3 mb-4">
             {WIN_LINES.map(line => (
               <div key={line.id} className="flex flex-col items-center gap-1">
@@ -461,7 +461,7 @@ export default function SlotPage() {
           </div>
 
           {/* Payout table */}
-          <p className="text-white/15 text-[9px] uppercase tracking-[0.35em] text-center mb-2">배당표 (BET × N)</p>
+          <p className="text-(--t5) text-[9px] uppercase tracking-[0.35em] text-center mb-2">배당표 (BET × N)</p>
           <div className="space-y-1.5">
             {SYMBOLS.map(sym => (
               <div key={sym.id} className="flex items-center justify-between">
@@ -469,8 +469,8 @@ export default function SlotPage() {
                 <span className="text-amber-300/50 text-xs font-mono">× {sym.pay3.toLocaleString()}</span>
               </div>
             ))}
-            <div className="border-t border-white/[0.05] pt-2 flex items-center justify-between">
-              <span className="text-[22px] leading-none">🍒🍒<span className="text-white/15">—</span></span>
+            <div className="border-t border-(--rim) pt-2 flex items-center justify-between">
+              <span className="text-[22px] leading-none">🍒🍒<span className="text-(--t5)">—</span></span>
               <span className="text-amber-300/50 text-xs font-mono">× 2</span>
             </div>
           </div>
